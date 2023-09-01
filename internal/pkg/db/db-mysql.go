@@ -20,8 +20,6 @@ func CreateDbMysql() Db {
 }
 
 func (dbMySql *DbMysql) InitializeConnection(appConfig *config.AppConfig) {
-	log.Printf("PROCESSING InitializeConnection >>>")
-
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		DSN: fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 			appConfig.DB_USER,
@@ -42,13 +40,9 @@ func (dbMySql *DbMysql) InitializeConnection(appConfig *config.AppConfig) {
 	}
 
 	dbMySql.db = db
-
-	log.Printf("<<< PROCESSED InitializeConnection")
 }
 
 func (dbMySql *DbMysql) CloseConnection() {
-	log.Printf("PROCESSING CloseConnection >>>")
-	log.Printf("<<< PROCESSED CloseConnection")
 }
 
 func (dbMySql *DbMysql) CreateUser() *model.User {
