@@ -10,4 +10,5 @@ type Db interface {
 	CloseConnection()
 	CreateUser() *model.User
 	GetUser() *model.User
+	IsHealthy() bool
 }
