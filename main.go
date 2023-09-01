@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	app "github.com/pjmessi/go-database-usage/cmd/app"
+)
 
 func main() {
-	fmt.Println("Hello world")
+	app.StartApp()
 }
