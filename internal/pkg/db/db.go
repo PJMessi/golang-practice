@@ -1,9 +1,12 @@
 package db
 
-import model "github.com/pjmessi/go-database-usage/internal/pkg/models"
+import (
+	"github.com/pjmessi/go-database-usage/config"
+	"github.com/pjmessi/go-database-usage/internal/pkg/model"
+)
 
 type Db interface {
-	InitializeConnection()
+	InitializeConnection(appConfig *config.AppConfig)
 	CloseConnection()
 	CreateUser() *model.User
 	GetUser() *model.User

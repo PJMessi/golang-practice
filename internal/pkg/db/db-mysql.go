@@ -1,10 +1,12 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"time"
 
-	model "github.com/pjmessi/go-database-usage/internal/pkg/models"
+	"github.com/pjmessi/go-database-usage/config"
+	"github.com/pjmessi/go-database-usage/internal/pkg/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -17,16 +19,22 @@ func CreateDbMysql() Db {
 	return &DbMysql{}
 }
 
-func (dbMySql *DbMysql) InitializeConnection() {
+func (dbMySql *DbMysql) InitializeConnection(appConfig *config.AppConfig) {
 	log.Printf("PROCESSING InitializeConnection >>>")
 
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		DSN:                       "root:miferia@tcp(127.0.0.1:3307)/go-database-test?charset=utf8&parseTime=True&loc=Local", // data source name
-		DefaultStringSize:         256,                                                                                       // default size for string fields
-		DisableDatetimePrecision:  true,                                                                                      // disable datetime precision, which not supported before MySQL 5.6
-		DontSupportRenameIndex:    true,                                                                                      // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
-		DontSupportRenameColumn:   true,                                                                                      // `change` when rename column, rename column not supported before MySQL 8, MariaDB
-		SkipInitializeWithVersion: false,                                                                                     // auto configure based on currently MySQL version
+		DSN: fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+			appConfig.DB_USER,
+			appConfig.DB_PASSWORD,
+			appConfig.DB_HOST,
+			appConfig.DB_PORT,
+			appConfig.DB_DATABASE,
+		),
+		DefaultStringSize:         255,
+		DisableDatetimePrecision:  true,
+		DontSupportRenameIndex:    true,
+		DontSupportRenameColumn:   true,
+		SkipInitializeWithVersion: false,
 	}), &gorm.Config{})
 
 	if err != nil {
