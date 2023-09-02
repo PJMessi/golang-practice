@@ -32,8 +32,11 @@ type ErrorResponse struct {
 }
 
 func (routerHandler *RoutesHandler) HandleError(w http.ResponseWriter, err error) {
+	log.Println("hell")
+	log.Println(err)
 	switch err := err.(type) {
 	case *exceptions.InvalidRequestException:
+		routerHandler.prepareErrorResponse(w, http.StatusBadRequest, err.Type, err.Message, nil)
 	case *exceptions.DuplicateException:
 		routerHandler.prepareErrorResponse(w, http.StatusBadRequest, err.Type, err.Message, nil)
 	case *exceptions.NotFoundException:

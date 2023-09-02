@@ -11,6 +11,7 @@ import (
 	"github.com/pjmessi/go-database-usage/internal/pkg/db"
 	dbmysql "github.com/pjmessi/go-database-usage/internal/pkg/db/db-mysql"
 	"github.com/pjmessi/go-database-usage/pkg/hashing"
+	"github.com/pjmessi/go-database-usage/pkg/password"
 	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
 
@@ -28,9 +29,10 @@ func StartApp() {
 
 	// initialize utilities
 	hashUtility := hashing.CreateHashUtility()
+	passwordUtility := password.CreatePasswordUtilty()
 
 	// initialize services
-	accountRegisrationService := business.CreateAccountRegistrationService(&dbInstance, hashUtility)
+	accountRegisrationService := business.CreateAccountRegistrationService(&dbInstance, hashUtility, passwordUtility)
 
 	// register REST API routes
 	router := api.RegisterRoutes(validator, accountRegisrationService)
