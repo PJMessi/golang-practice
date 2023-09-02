@@ -7,8 +7,10 @@ import (
 
 	"github.com/pjmessi/go-database-usage/api"
 	"github.com/pjmessi/go-database-usage/config"
+	"github.com/pjmessi/go-database-usage/internal/business"
 	"github.com/pjmessi/go-database-usage/internal/pkg/db"
 	dbmysql "github.com/pjmessi/go-database-usage/internal/pkg/db/db-mysql"
+	"github.com/pjmessi/go-database-usage/pkg/hashing"
 	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
 
@@ -24,8 +26,14 @@ func StartApp() {
 	dbInstance.InitializeConnection(appConfig)
 	defer dbInstance.CloseConnection()
 
+	// initialize utilities
+	hashUtility := hashing.CreateHashUtility()
+
+	// initialize services
+	accountRegisrationService := business.CreateAccountRegistrationService(&dbInstance, hashUtility)
+
 	// register REST API routes
-	router := api.RegisterRoutes(validator)
+	router := api.RegisterRoutes(validator, accountRegisrationService)
 
 	// start http server
 	appPort := fmt.Sprintf(":%s", appConfig.APP_PORT)

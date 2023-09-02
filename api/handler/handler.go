@@ -5,16 +5,22 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/pjmessi/go-database-usage/internal/business"
 	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
 
 type RoutesHandler struct {
-	validator *validation.Validator
+	validator                  *validation.Validator
+	accountRegistrationService *business.AccountRegistrationService
 }
 
-func CreateRouteHandler(validator *validation.Validator) *RoutesHandler {
+func CreateRouteHandler(
+	validator *validation.Validator,
+	accountRegistrationService *business.AccountRegistrationService,
+) *RoutesHandler {
 	return &RoutesHandler{
-		validator: validator,
+		validator:                  validator,
+		accountRegistrationService: accountRegistrationService,
 	}
 }
 

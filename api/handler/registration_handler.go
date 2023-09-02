@@ -23,4 +23,6 @@ func (routesHandler *RoutesHandler) RegisterUserHandler(w http.ResponseWriter, r
 		routesHandler.prepareInvalidRequestDataResponse(w, &details)
 		return
 	}
+
+	routesHandler.accountRegistrationService.RegisterUser(registerUserRequest.Email, registerUserRequest.Password)
 }
