@@ -30,6 +30,7 @@ func StartApp() {
 	// initialize utilities
 	hashUtility := hashing.CreateHashUtility()
 	passwordUtility := password.CreatePasswordUtilty()
+	// jwtUtility := jsonwebtoken.CreateJwtUtility()
 
 	// initialize services
 	accountRegisrationService := business.CreateAccountRegistrationService(&dbInstance, hashUtility, passwordUtility)

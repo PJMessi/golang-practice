@@ -8,12 +8,14 @@ import (
 )
 
 type AppConfig struct {
-	APP_PORT    string
-	DB_HOST     string
-	DB_PORT     string
-	DB_DATABASE string
-	DB_USER     string
-	DB_PASSWORD string
+	APP_PORT            string
+	DB_HOST             string
+	DB_PORT             string
+	DB_DATABASE         string
+	DB_USER             string
+	DB_PASSWORD         string
+	JWT_SECRET          string
+	JWT_EXPIRATION_TIME string
 }
 
 func GetAppConfig() *AppConfig {
@@ -23,12 +25,14 @@ func GetAppConfig() *AppConfig {
 	}
 
 	return &AppConfig{
-		APP_PORT:    os.Getenv("APP_PORT"),
-		DB_HOST:     os.Getenv("DB_HOST"),
-		DB_PORT:     os.Getenv("DB_PORT"),
-		DB_DATABASE: os.Getenv("DB_DATABASE"),
-		DB_USER:     os.Getenv("DB_USER"),
-		DB_PASSWORD: os.Getenv("DB_PASSWORD"),
+		APP_PORT:            os.Getenv("APP_PORT"),
+		DB_HOST:             os.Getenv("DB_HOST"),
+		DB_PORT:             os.Getenv("DB_PORT"),
+		DB_DATABASE:         os.Getenv("DB_DATABASE"),
+		DB_USER:             os.Getenv("DB_USER"),
+		DB_PASSWORD:         os.Getenv("DB_PASSWORD"),
+		JWT_SECRET:          os.Getenv("JWT_SECRET"),
+		JWT_EXPIRATION_TIME: os.Getenv("JWT_EXPIRATION_TIME"),
 	}
 }
 

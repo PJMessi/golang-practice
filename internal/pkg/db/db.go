@@ -9,5 +9,7 @@ type Db interface {
 	InitializeConnection(appConfig *config.AppConfig)
 	CloseConnection()
 	IsHealthy() bool
+
+	// User related operations
 	CreateUser(user *model.User)
 }
