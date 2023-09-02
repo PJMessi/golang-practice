@@ -8,6 +8,7 @@ import (
 )
 
 type AppConfig struct {
+	APP_PORT    string
 	DB_HOST     string
 	DB_PORT     string
 	DB_DATABASE string
@@ -22,6 +23,7 @@ func GetAppConfig() *AppConfig {
 	}
 
 	return &AppConfig{
+		APP_PORT:    os.Getenv("APP_PORT"),
 		DB_HOST:     os.Getenv("DB_HOST"),
 		DB_PORT:     os.Getenv("DB_PORT"),
 		DB_DATABASE: os.Getenv("DB_DATABASE"),
