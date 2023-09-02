@@ -6,8 +6,8 @@ import (
 )
 
 type RegisterUserRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email,max=100"`
+	Password string `json:"password" validate:"required,max=255"`
 }
 
 func (routesHandler *RoutesHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
