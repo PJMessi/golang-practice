@@ -3,11 +3,18 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/pjmessi/go-database-usage/api/responses"
+	"github.com/pjmessi/go-database-usage/internal/dtos"
 )
 
 type RegisterUserRequest struct {
 	Email    string `json:"email" validate:"required,email,max=100"`
 	Password string `json:"password" validate:"required,max=255"`
+}
+
+type RegisterUserResponse struct {
+	User *responses.UserResponse `json:"user"`
 }
 
 func (routesHandler *RoutesHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,11 +37,15 @@ func (routesHandler *RoutesHandler) RegisterUserHandler(w http.ResponseWriter, r
 		return
 	}
 
-	response, err := json.Marshal(user)
+	response := &RegisterUserResponse{
+		User: dtos.UserToUserResponse(user),
+	}
+
+	responseInBytes, err := json.Marshal(response)
 	if err != nil {
 		routesHandler.HandleError(w, err)
 		return
 	}
 
-	w.Write(response)
+	w.Write(responseInBytes)
 }
