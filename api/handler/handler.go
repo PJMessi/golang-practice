@@ -33,6 +33,8 @@ type ErrorResponse struct {
 // GlobalErrorHandler executes the handler function and returns 500 error response in case of panic
 func (routerHandler *RoutesHandler) GlobalErrorHandler(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("recovered from panic: %v", r)
@@ -47,7 +49,6 @@ func (routerHandler *RoutesHandler) GlobalErrorHandler(next http.HandlerFunc) ht
 
 // prepareErrorResponse updates the response writer with the provided status code, error type and error message
 func (routerHandler *RoutesHandler) prepareErrorResponse(w http.ResponseWriter, statusCode int, errorType string, errorMessage string, details *string) {
-	w.Header().Set("Content-Type", "application/json")
 	res, err := json.Marshal(ErrorResponse{Type: errorType, Message: errorMessage, Details: details})
 
 	if err != nil {
