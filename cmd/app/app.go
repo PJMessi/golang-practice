@@ -5,38 +5,48 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/pjmessi/go-database-usage/api"
+	"github.com/pjmessi/go-database-usage/api/restapi"
 	"github.com/pjmessi/go-database-usage/config"
-	"github.com/pjmessi/go-database-usage/internal/business"
-	"github.com/pjmessi/go-database-usage/internal/pkg/db"
-	dbmysql "github.com/pjmessi/go-database-usage/internal/pkg/db/db-mysql"
-	"github.com/pjmessi/go-database-usage/pkg/hashing"
+	"github.com/pjmessi/go-database-usage/internal/pkg/database"
+	"github.com/pjmessi/go-database-usage/internal/service/auth"
+	"github.com/pjmessi/go-database-usage/internal/service/user"
+	"github.com/pjmessi/go-database-usage/pkg/hash"
+	"github.com/pjmessi/go-database-usage/pkg/jwt"
 	"github.com/pjmessi/go-database-usage/pkg/password"
+	"github.com/pjmessi/go-database-usage/pkg/uuid"
 	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
 
 func StartApp() {
 	appConfig := config.GetAppConfig()
 
-	// initialize validator
-	validator := validation.CreateValidator()
-	validator.InitializeValidator()
-
 	// initialize database connection
-	var dbInstance db.Db = dbmysql.CreateDbMysql()
-	dbInstance.InitializeConnection(appConfig)
-	defer dbInstance.CloseConnection()
+	var db, err = database.NewDbImpl(appConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.CloseConnection()
 
 	// initialize utilities
-	hashUtility := hashing.CreateHashUtility()
-	passwordUtility := password.CreatePasswordUtilty()
-	// jwtUtility := jsonwebtoken.CreateJwtUtility()
+	validationUtil := validation.NewUtil()
+	hashUtil := hash.NewUtil()
+	passwordUtil := password.NewUtil()
+	uuidUtil := uuid.NewUtil()
+	jwtUtility, err := jwt.NewUtil(appConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// initialize services
-	accountRegisrationService := business.CreateAccountRegistrationService(&dbInstance, hashUtility, passwordUtility)
+	userService := user.NewService(db, hashUtil, passwordUtil, uuidUtil)
+	authService := auth.NewService(jwtUtility, db, hashUtil)
+
+	// initialize facades
+	userFacade := user.NewFacade(userService, validationUtil)
+	authFacade := auth.NewFacade(authService, validationUtil)
 
 	// register REST API routes
-	router := api.RegisterRoutes(validator, accountRegisrationService)
+	router := restapi.RegisterRoutes(authFacade, userFacade)
 
 	// start http server
 	appPort := fmt.Sprintf(":%s", appConfig.APP_PORT)
