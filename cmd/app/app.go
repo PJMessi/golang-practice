@@ -9,15 +9,22 @@ import (
 	"github.com/pjmessi/go-database-usage/config"
 	"github.com/pjmessi/go-database-usage/internal/pkg/db"
 	dbmysql "github.com/pjmessi/go-database-usage/internal/pkg/db/db-mysql"
+	"github.com/pjmessi/go-database-usage/pkg/validator"
 )
 
 func StartApp() {
 	appConfig := config.GetAppConfig()
 
+	// initialize validator
+	validator := validator.CreateValidator()
+	validator.InitializeValidator()
+
+	// initialize database connection
 	var dbInstance db.Db = dbmysql.CreateDbMysql()
 	dbInstance.InitializeConnection(appConfig)
 	defer dbInstance.CloseConnection()
 
+	// register REST API routes
 	router := api.RegisterRoutes()
 
 	appPort := fmt.Sprintf(":%s", appConfig.APP_PORT)
