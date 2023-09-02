@@ -1,6 +1,7 @@
 package business
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pjmessi/go-database-usage/internal/exceptions"
@@ -31,6 +32,18 @@ func CreateAccountRegistrationService(
 }
 
 func (service *AccountRegistrationService) RegisterUser(email string, password string) (*model.User, error) {
+	isEmailTaken, err := (*service.db).IsUserEmailTaken(email)
+	if err != nil {
+		return nil, err
+	}
+
+	if *isEmailTaken {
+		return nil, &exceptions.DuplicateException{
+			Type:    "USER.DUPLICATE",
+			Message: fmt.Sprintf("user with the email '%s' already exists", email),
+		}
+	}
+
 	if !service.passwordUtility.IsStrong(password) {
 		return nil, &exceptions.InvalidRequestException{
 			Type:    "REQUEST_DATA.INVALID",
@@ -56,7 +69,10 @@ func (service *AccountRegistrationService) RegisterUser(email string, password s
 		CreatedAt: time.Now(),
 	}
 
-	(*service.db).CreateUser(&user)
+	err = (*service.db).CreateUser(&user)
+	if err != nil {
+		return nil, err
+	}
 
 	return &user, nil
 }

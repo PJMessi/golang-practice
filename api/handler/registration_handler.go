@@ -31,7 +31,10 @@ func (routesHandler *RoutesHandler) RegisterUserHandler(w http.ResponseWriter, r
 		return
 	}
 
-	user, err := routesHandler.accountRegistrationService.RegisterUser(registerUserRequest.Email, registerUserRequest.Password)
+	user, err := routesHandler.accountRegistrationService.RegisterUser(
+		registerUserRequest.Email,
+		registerUserRequest.Password,
+	)
 	if err != nil {
 		routesHandler.HandleError(w, err)
 		return

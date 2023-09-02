@@ -11,5 +11,6 @@ type Db interface {
 	IsHealthy() bool
 
 	// User related operations
-	CreateUser(user *model.User)
+	CreateUser(user *model.User) error
+	IsUserEmailTaken(email string) (*bool, error)
 }
