@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/pjmessi/go-database-usage/internal/business"
+	"github.com/pjmessi/go-database-usage/internal/exceptions"
 	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
 
@@ -30,8 +31,20 @@ type ErrorResponse struct {
 	Details *string `json:"details"`
 }
 
-// GlobalErrorHandler executes the handler function and returns 500 error response in case of panic
-func (routerHandler *RoutesHandler) GlobalErrorHandler(next http.HandlerFunc) http.HandlerFunc {
+func (routerHandler *RoutesHandler) HandleError(w http.ResponseWriter, err error) {
+	switch err := err.(type) {
+	case *exceptions.InvalidRequestException:
+	case *exceptions.DuplicateException:
+		routerHandler.prepareErrorResponse(w, http.StatusBadRequest, err.Type, err.Message, nil)
+	case *exceptions.NotFoundException:
+		routerHandler.prepareErrorResponse(w, http.StatusNotFound, err.Type, err.Message, nil)
+	default:
+		routerHandler.prepareInternalServerError(w)
+	}
+}
+
+// PanicHandler executes the handler function and returns 500 error response in case of panic
+func (routerHandler *RoutesHandler) PanicHandler(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 

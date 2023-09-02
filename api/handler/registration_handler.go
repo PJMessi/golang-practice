@@ -24,5 +24,17 @@ func (routesHandler *RoutesHandler) RegisterUserHandler(w http.ResponseWriter, r
 		return
 	}
 
-	routesHandler.accountRegistrationService.RegisterUser(registerUserRequest.Email, registerUserRequest.Password)
+	user, err := routesHandler.accountRegistrationService.RegisterUser(registerUserRequest.Email, registerUserRequest.Password)
+	if err != nil {
+		routesHandler.HandleError(w, err)
+		return
+	}
+
+	response, err := json.Marshal(user)
+	if err != nil {
+		routesHandler.HandleError(w, err)
+		return
+	}
+
+	w.Write(response)
 }
