@@ -1,13 +1,22 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
+
+type RoutesHandler struct {
+	validator *validation.Validator
+}
+
+func CreateRouteHandler(validator *validation.Validator) *RoutesHandler {
+	return &RoutesHandler{
+		validator: validator,
+	}
+}
 
 type ErrorResponse struct {
 	Type    string  `json:"type"`
@@ -16,13 +25,13 @@ type ErrorResponse struct {
 }
 
 // GlobalErrorHandler executes the handler function and returns 500 error response in case of panic
-func GlobalErrorHandler(next http.HandlerFunc) http.HandlerFunc {
+func (routerHandler *RoutesHandler) GlobalErrorHandler(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("recovered from panic: %v", r)
 
-				prepareInternalServerError(w)
+				routerHandler.prepareInternalServerError(w)
 			}
 		}()
 
@@ -31,7 +40,7 @@ func GlobalErrorHandler(next http.HandlerFunc) http.HandlerFunc {
 }
 
 // prepareErrorResponse updates the response writer with the provided status code, error type and error message
-func prepareErrorResponse(w http.ResponseWriter, statusCode int, errorType string, errorMessage string, details *string) {
+func (routerHandler *RoutesHandler) prepareErrorResponse(w http.ResponseWriter, statusCode int, errorType string, errorMessage string, details *string) {
 	w.Header().Set("Content-Type", "application/json")
 	res, err := json.Marshal(ErrorResponse{Type: errorType, Message: errorMessage, Details: details})
 
@@ -47,25 +56,11 @@ func prepareErrorResponse(w http.ResponseWriter, statusCode int, errorType strin
 }
 
 // prepareInvalidRequestDataResponse updates the response writer for a invalid request data error
-func prepareInvalidRequestDataResponse(w http.ResponseWriter, details *string) {
-	prepareErrorResponse(w, http.StatusBadRequest, "REQUEST_DATA.INVALID", "the provided data is invalid", details)
+func (routerHandler *RoutesHandler) prepareInvalidRequestDataResponse(w http.ResponseWriter, details *string) {
+	routerHandler.prepareErrorResponse(w, http.StatusBadRequest, "REQUEST_DATA.INVALID", "the provided data is invalid", details)
 }
 
 // prepareInternalServerError updates the response writer for an internal server error
-func prepareInternalServerError(w http.ResponseWriter) {
-	prepareErrorResponse(w, http.StatusInternalServerError, "INTERNAL", "internal server error", nil)
-}
-
-// FormatValidationErrors returns formated string describing the validation errors
-func formatValidationErrors(err error) string {
-	if errs, ok := err.(validator.ValidationErrors); ok {
-		errorMsg := ""
-		for _, vErr := range errs {
-			field := vErr.StructField()
-			tag := vErr.Tag()
-			errorMsg += fmt.Sprintf("'%s' validation failed for tag '%s'. ", field, tag)
-		}
-		return errorMsg
-	}
-	return err.Error()
+func (routerHandler *RoutesHandler) prepareInternalServerError(w http.ResponseWriter) {
+	routerHandler.prepareErrorResponse(w, http.StatusInternalServerError, "INTERNAL", "internal server error", nil)
 }

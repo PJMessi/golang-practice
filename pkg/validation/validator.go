@@ -1,4 +1,4 @@
-package validator
+package validation
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func (v *Validator) InitializeValidator() {
 	v.validator = validator.New()
 }
 
-func (v *Validator) ValidateStruct(s struct{}) error {
+func (v *Validator) ValidateStruct(s interface{}) error {
 	if v.validator == nil {
 		panic("validator not initialized")
 	}

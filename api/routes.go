@@ -4,13 +4,17 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/pjmessi/go-database-usage/api/handlers"
+
+	"github.com/pjmessi/go-database-usage/api/handler"
+	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
 
-func RegisterRoutes() http.Handler {
+func RegisterRoutes(validator *validation.Validator) http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/account/registration", handlers.GlobalErrorHandler(handlers.RegisterUserHandler)).Methods("POST")
+	routeHandler := handler.CreateRouteHandler(validator)
+
+	router.HandleFunc("/account/registration", routeHandler.GlobalErrorHandler(routeHandler.RegisterUserHandler)).Methods("POST")
 
 	return router
 }
