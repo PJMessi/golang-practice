@@ -16,6 +16,7 @@ func RegisterRoutes(validator *validation.Validator, accountRegistrationService 
 	routeHandler := handler.CreateRouteHandler(validator, accountRegistrationService)
 
 	router.HandleFunc("/account/registration", routeHandler.PanicHandler(routeHandler.RegisterUserHandler)).Methods("POST")
+	router.HandleFunc("/auth/login", routeHandler.PanicHandler(routeHandler.LoginHandler)).Methods("POST")
 
 	return router
 }
