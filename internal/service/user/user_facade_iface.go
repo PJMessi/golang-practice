@@ -1,5 +1,7 @@
 package user
 
+import "context"
+
 type Facade interface {
-	RegisterUser(reqBytes []byte) ([]byte, error)
+	RegisterUser(ctx context.Context, reqBytes []byte) ([]byte, error)
 }

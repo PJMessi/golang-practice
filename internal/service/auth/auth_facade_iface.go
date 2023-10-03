@@ -1,5 +1,7 @@
 package auth
 
+import "context"
+
 type Facade interface {
-	Login(reqBytes []byte) ([]byte, error)
+	Login(ctx context.Context, reqBytes []byte) ([]byte, error)
 }

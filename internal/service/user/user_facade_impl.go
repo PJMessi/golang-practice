@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+
 	"github.com/pjmessi/go-database-usage/internal/dto"
 	"github.com/pjmessi/go-database-usage/internal/model"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
@@ -21,7 +23,7 @@ func NewFacade(userService Service, validationUtil validation.Util) Facade {
 	}
 }
 
-func (f *FacadeImpl) RegisterUser(reqBytes []byte) ([]byte, error) {
+func (f *FacadeImpl) RegisterUser(ctx context.Context, reqBytes []byte) ([]byte, error) {
 	var req model.UserRegApiReq
 
 	err := structutil.ConvertFromBytes(reqBytes, &req)
@@ -39,7 +41,7 @@ func (f *FacadeImpl) RegisterUser(reqBytes []byte) ([]byte, error) {
 		})
 	}
 
-	user, err := f.userService.CreateUser(req.Email, req.Password)
+	user, err := f.userService.CreateUser(ctx, req.Email, req.Password)
 	if err != nil {
 		return nil, err
 	}

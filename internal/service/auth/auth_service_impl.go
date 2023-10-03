@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	"github.com/pjmessi/go-database-usage/internal/model"
 	"github.com/pjmessi/go-database-usage/internal/pkg/database"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
@@ -23,8 +25,8 @@ func NewService(jwtUtil jwt.Util, db database.Db, hashUtil hash.Util) Service {
 	}
 }
 
-func (s *ServiceImpl) Login(email string, password string) (model.User, string, error) {
-	userExists, user, err := (s.db).GetUserByEmail(email)
+func (s *ServiceImpl) Login(ctx context.Context, email string, password string) (model.User, string, error) {
+	userExists, user, err := (s.db).GetUserByEmail(ctx, email)
 	if err != nil {
 		return model.User{}, "", err
 	}

@@ -46,7 +46,7 @@ func StartApp() {
 	authFacade := auth.NewFacade(authService, validationUtil)
 
 	// register REST API routes
-	router := restapi.RegisterRoutes(authFacade, userFacade)
+	router := restapi.RegisterRoutes(authFacade, userFacade, uuidUtil)
 
 	// start http server
 	appPort := fmt.Sprintf(":%s", appConfig.APP_PORT)

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pjmessi/go-database-usage/internal/model"
@@ -29,8 +30,8 @@ func NewService(db database.Db, hashUtil hash.Util, passwordUtil password.Util, 
 	}
 }
 
-func (s *ServiceImpl) CreateUser(email string, password string) (model.User, error) {
-	isEmailTaken, err := s.db.IsUserEmailTaken(email)
+func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password string) (model.User, error) {
+	isEmailTaken, err := s.db.IsUserEmailTaken(ctx, email)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -61,7 +62,7 @@ func (s *ServiceImpl) CreateUser(email string, password string) (model.User, err
 		return model.User{}, err
 	}
 
-	err = (s.db).CreateUser(&user)
+	err = (s.db).CreateUser(ctx, &user)
 	if err != nil {
 		return model.User{}, err
 	}

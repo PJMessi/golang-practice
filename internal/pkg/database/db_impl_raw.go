@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -56,7 +57,7 @@ func (r *RawDbImpl) IsHealthy() bool {
 	return total == 4
 }
 
-func (r *RawDbImpl) CreateUser(user *model.User) error {
+func (r *RawDbImpl) CreateUser(ctx context.Context, user *model.User) error {
 	stmt, err := r.db.Prepare("INSERT INTO users (id, email, password, first_name, last_name, created_at, updated_at) VALUE (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return fmt.Errorf("database.CreateUser: %w", err)
@@ -76,7 +77,7 @@ func (r *RawDbImpl) CreateUser(user *model.User) error {
 	return nil
 }
 
-func (r *RawDbImpl) IsUserEmailTaken(email string) (bool, error) {
+func (r *RawDbImpl) IsUserEmailTaken(ctx context.Context, email string) (bool, error) {
 	var isTaken bool
 	query := fmt.Sprintf("SELECT EXISTS(SELECT * FROM users WHERE email = \"%s\");", email)
 	res, err := r.db.Query(query)
@@ -96,7 +97,7 @@ func (r *RawDbImpl) IsUserEmailTaken(email string) (bool, error) {
 	return isTaken, nil
 }
 
-func (r *RawDbImpl) GetUserByEmail(email string) (bool, model.User, error) {
+func (r *RawDbImpl) GetUserByEmail(ctx context.Context, email string) (bool, model.User, error) {
 	rows, err := r.db.Query("SELECT * FROM users WHERE email = ?;", email)
 	if err != nil {
 		return false, model.User{}, fmt.Errorf("database.GetUserByEmail: %w", err)

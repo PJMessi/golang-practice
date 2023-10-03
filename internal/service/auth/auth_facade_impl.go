@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	"github.com/pjmessi/go-database-usage/internal/dto"
 	"github.com/pjmessi/go-database-usage/internal/model"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
@@ -20,7 +22,7 @@ func NewFacade(authService Service, validationUtil validation.Util) Facade {
 	}
 }
 
-func (f *FacadeImpl) Login(reqBytes []byte) ([]byte, error) {
+func (f *FacadeImpl) Login(ctx context.Context, reqBytes []byte) ([]byte, error) {
 	var req model.LoginApiReq
 
 	err := structutil.ConvertFromBytes(reqBytes, &req)
@@ -36,7 +38,7 @@ func (f *FacadeImpl) Login(reqBytes []byte) ([]byte, error) {
 		})
 	}
 
-	user, jwtStr, err := f.authService.Login(req.Email, req.Password)
+	user, jwtStr, err := f.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		return nil, err
 	}
