@@ -3,7 +3,6 @@ package restapi
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"runtime"
 
@@ -19,20 +18,20 @@ type ErrRes exception.Base
 func (rh *RouteHandler) handleErr(ctx context.Context, w http.ResponseWriter, err error) {
 	switch e := err.(type) {
 	case exception.InvalidReq:
-		rh.writeErrRes(w, http.StatusUnprocessableEntity, ErrRes(*e.Base))
+		rh.writeErrRes(ctx, w, http.StatusUnprocessableEntity, ErrRes(*e.Base))
 	case exception.NotFound:
-		rh.writeErrRes(w, http.StatusNotFound, ErrRes(*e.Base))
+		rh.writeErrRes(ctx, w, http.StatusNotFound, ErrRes(*e.Base))
 	case exception.Unauthenticated:
-		rh.writeErrRes(w, http.StatusUnauthorized, ErrRes(*e.Base))
+		rh.writeErrRes(ctx, w, http.StatusUnauthorized, ErrRes(*e.Base))
 	case exception.Unauthorized:
-		rh.writeErrRes(w, http.StatusForbidden, ErrRes(*e.Base))
+		rh.writeErrRes(ctx, w, http.StatusForbidden, ErrRes(*e.Base))
 	case exception.AlreadyExists:
-		rh.writeErrRes(w, http.StatusBadRequest, ErrRes(*e.Base))
+		rh.writeErrRes(ctx, w, http.StatusBadRequest, ErrRes(*e.Base))
 	case exception.FailedPrecondition:
-		rh.writeErrRes(w, http.StatusBadRequest, ErrRes(*e.Base))
+		rh.writeErrRes(ctx, w, http.StatusBadRequest, ErrRes(*e.Base))
 	default:
-		log.Printf("unexpected error: %s", err.Error())
-		rh.writeInternalErrRes(w)
+		rh.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("unexpected error: %s", err.Error()))
+		rh.writeInternalErrRes(ctx, w)
 	}
 }
 
@@ -53,7 +52,7 @@ func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
 				stack := make([]byte, 1024)
 				runtime.Stack(stack, false)
 				rh.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("recovered from panice: %v\n%s", recoverRes, stack))
-				rh.writeInternalErrRes(w)
+				rh.writeInternalErrRes(ctx, w)
 			}
 		}()
 
@@ -61,23 +60,23 @@ func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
 	}
 }
 
-func (rh *RouteHandler) writeInternalErrRes(w http.ResponseWriter) {
-	rh.writeErrRes(w, http.StatusInternalServerError, ErrRes{
+func (rh *RouteHandler) writeInternalErrRes(ctx context.Context, w http.ResponseWriter) {
+	rh.writeErrRes(ctx, w, http.StatusInternalServerError, ErrRes{
 		Type:    "INTERNAL",
 		Message: "internal server error",
 		Details: nil,
 	})
 }
 
-func (rh *RouteHandler) writeErrRes(w http.ResponseWriter, statusCode int, errRes ErrRes) {
+func (rh *RouteHandler) writeErrRes(ctx context.Context, w http.ResponseWriter, statusCode int, errRes ErrRes) {
 	resBytes, err := structutil.ConvertToBytes(errRes)
 	if err != nil {
-		log.Printf("err while converting ErrRes to bytes: %v", err)
+		rh.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("err while converting ErrRes to bytes: %v", err))
 		w.WriteHeader(http.StatusInternalServerError)
 
 		_, writeErr := w.Write([]byte(err.Error()))
 		if writeErr != nil {
-			log.Printf("err while writing err response: %v\n", err)
+			rh.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("err while writing err response: %v", err))
 		}
 		return
 	}
@@ -85,6 +84,6 @@ func (rh *RouteHandler) writeErrRes(w http.ResponseWriter, statusCode int, errRe
 	w.WriteHeader(statusCode)
 	_, err = w.Write(resBytes)
 	if err != nil {
-		log.Printf("err while writing err response: %v\n", err)
+		rh.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("err while writing err response: %v", err))
 	}
 }
