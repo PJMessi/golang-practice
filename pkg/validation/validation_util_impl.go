@@ -3,6 +3,7 @@ package validation
 import (
 	"errors"
 	"fmt"
+
 	"github.com/go-playground/validator"
 )
 
@@ -19,7 +20,7 @@ func NewUtil() Util {
 
 func (v *UtilImpl) ValidateStruct(s interface{}) error {
 	if v.validator == nil {
-		panic("validator not initialized")
+		return fmt.Errorf("validation.ValidateStruct: validator has not been initialized")
 	}
 
 	err := v.validator.Struct(s)
