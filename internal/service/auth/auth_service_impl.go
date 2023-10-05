@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pjmessi/go-database-usage/internal/errorcode"
 	"github.com/pjmessi/go-database-usage/internal/model"
 	"github.com/pjmessi/go-database-usage/internal/pkg/database"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
@@ -42,7 +43,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 	if user.Password == nil {
 		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' hasn't setup his password", email))
 		return model.User{}, "", exception.NewUnauthenticatedFromBase(exception.Base{
-			Type: "UNAUTHENTICATED.PASSWORD_NOT_SET",
+			Type: errorcode.UserPwNotSet,
 		})
 	}
 

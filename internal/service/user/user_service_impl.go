@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pjmessi/go-database-usage/internal/errorcode"
 	"github.com/pjmessi/go-database-usage/internal/model"
 	"github.com/pjmessi/go-database-usage/internal/pkg/database"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
@@ -48,7 +49,7 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' already exists", email))
 		return model.User{}, exception.NewAlreadyExistsFromBase(exception.Base{
 			Message: fmt.Sprintf("user with the email '%s' already exists", email),
-			Type:    "USER.ALREADY_EXISTS",
+			Type:    errorcode.UserAlreadyExist,
 		})
 	}
 
