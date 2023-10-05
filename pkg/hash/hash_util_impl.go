@@ -1,7 +1,7 @@
 package hash
 
 import (
-	"github.com/pjmessi/go-database-usage/pkg/strutil"
+	"github.com/pjmessi/golang-practice/pkg/strutil"
 	"golang.org/x/crypto/bcrypt"
 )
 

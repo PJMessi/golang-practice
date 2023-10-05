@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/pjmessi/go-database-usage/pkg/ctxutil"
+	"github.com/pjmessi/golang-practice/pkg/ctxutil"
 )
 
 type UtilImpl struct {

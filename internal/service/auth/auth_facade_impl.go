@@ -3,12 +3,12 @@ package auth
 import (
 	"context"
 
-	"github.com/pjmessi/go-database-usage/internal/dto"
-	"github.com/pjmessi/go-database-usage/internal/model"
-	"github.com/pjmessi/go-database-usage/pkg/exception"
-	"github.com/pjmessi/go-database-usage/pkg/logger"
-	"github.com/pjmessi/go-database-usage/pkg/structutil"
-	"github.com/pjmessi/go-database-usage/pkg/validation"
+	"github.com/pjmessi/golang-practice/internal/dto"
+	"github.com/pjmessi/golang-practice/internal/model"
+	"github.com/pjmessi/golang-practice/pkg/exception"
+	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/structutil"
+	"github.com/pjmessi/golang-practice/pkg/validation"
 )
 
 type FacadeImpl struct {

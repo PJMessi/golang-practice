@@ -1,7 +1,7 @@
 package main
 
 import (
-	app "github.com/pjmessi/go-database-usage/cmd/app"
+	app "github.com/pjmessi/golang-practice/cmd/app"
 )
 
 func main() {

@@ -5,17 +5,17 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/pjmessi/go-database-usage/api/restapi"
-	"github.com/pjmessi/go-database-usage/config"
-	"github.com/pjmessi/go-database-usage/internal/pkg/database"
-	"github.com/pjmessi/go-database-usage/internal/service/auth"
-	"github.com/pjmessi/go-database-usage/internal/service/user"
-	"github.com/pjmessi/go-database-usage/pkg/hash"
-	"github.com/pjmessi/go-database-usage/pkg/jwt"
-	"github.com/pjmessi/go-database-usage/pkg/logger"
-	"github.com/pjmessi/go-database-usage/pkg/password"
-	"github.com/pjmessi/go-database-usage/pkg/uuid"
-	"github.com/pjmessi/go-database-usage/pkg/validation"
+	"github.com/pjmessi/golang-practice/api/restapi"
+	"github.com/pjmessi/golang-practice/config"
+	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/service/auth"
+	"github.com/pjmessi/golang-practice/internal/service/user"
+	"github.com/pjmessi/golang-practice/pkg/hash"
+	"github.com/pjmessi/golang-practice/pkg/jwt"
+	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/password"
+	"github.com/pjmessi/golang-practice/pkg/uuid"
+	"github.com/pjmessi/golang-practice/pkg/validation"
 )
 
 func StartApp() {

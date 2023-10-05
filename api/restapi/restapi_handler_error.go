@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/pjmessi/go-database-usage/pkg/ctxutil"
-	"github.com/pjmessi/go-database-usage/pkg/exception"
-	"github.com/pjmessi/go-database-usage/pkg/structutil"
+	"github.com/pjmessi/golang-practice/pkg/ctxutil"
+	"github.com/pjmessi/golang-practice/pkg/exception"
+	"github.com/pjmessi/golang-practice/pkg/structutil"
 )
 
 type HttpHandlerWithCtx func(context.Context, http.ResponseWriter, *http.Request)

@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pjmessi/go-database-usage/internal/errorcode"
-	"github.com/pjmessi/go-database-usage/internal/model"
-	"github.com/pjmessi/go-database-usage/internal/pkg/database"
-	"github.com/pjmessi/go-database-usage/pkg/exception"
-	"github.com/pjmessi/go-database-usage/pkg/hash"
-	"github.com/pjmessi/go-database-usage/pkg/logger"
-	"github.com/pjmessi/go-database-usage/pkg/password"
-	"github.com/pjmessi/go-database-usage/pkg/timeutil"
-	"github.com/pjmessi/go-database-usage/pkg/uuid"
+	"github.com/pjmessi/golang-practice/internal/errorcode"
+	"github.com/pjmessi/golang-practice/internal/model"
+	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/pkg/exception"
+	"github.com/pjmessi/golang-practice/pkg/hash"
+	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/password"
+	"github.com/pjmessi/golang-practice/pkg/timeutil"
+	"github.com/pjmessi/golang-practice/pkg/uuid"
 )
 
 type ServiceImpl struct {

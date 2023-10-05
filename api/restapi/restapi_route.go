@@ -3,10 +3,10 @@ package restapi
 import (
 	"net/http"
 
-	"github.com/pjmessi/go-database-usage/internal/service/auth"
-	"github.com/pjmessi/go-database-usage/internal/service/user"
-	"github.com/pjmessi/go-database-usage/pkg/logger"
-	"github.com/pjmessi/go-database-usage/pkg/uuid"
+	"github.com/pjmessi/golang-practice/internal/service/auth"
+	"github.com/pjmessi/golang-practice/internal/service/user"
+	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/uuid"
 
 	"github.com/gorilla/mux"
 )

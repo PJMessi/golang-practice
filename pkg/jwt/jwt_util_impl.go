@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	jwtgo "github.com/dgrijalva/jwt-go"
-	"github.com/pjmessi/go-database-usage/config"
-	"github.com/pjmessi/go-database-usage/pkg/strutil"
-	"github.com/pjmessi/go-database-usage/pkg/timeutil"
+	"github.com/pjmessi/golang-practice/config"
+	"github.com/pjmessi/golang-practice/pkg/strutil"
+	"github.com/pjmessi/golang-practice/pkg/timeutil"
 )
 
 type UtilImpl struct {

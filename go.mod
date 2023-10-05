@@ -1,4 +1,4 @@
-module github.com/pjmessi/go-database-usage
+module github.com/pjmessi/golang-practice
 
 go 1.21.0
 

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/pjmessi/go-database-usage/config"
-	"github.com/pjmessi/go-database-usage/internal/model"
+	"github.com/pjmessi/golang-practice/config"
+	"github.com/pjmessi/golang-practice/internal/model"
 )
 
 type RawDbImpl struct {
