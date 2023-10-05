@@ -4,7 +4,7 @@ import "context"
 
 type contextKey string
 
-func NewCtx(traceId string) context.Context {
+func NewCtxWithTraceId(traceId string) context.Context {
 	return context.WithValue(context.Background(), contextKey("TraceId"), traceId)
 }
 

@@ -9,7 +9,7 @@ import (
 func (rh *RouteHandler) handleLoginApi(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	reqBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		rh.handleErr(w, err)
+		rh.handleErr(ctx, w, err)
 		return
 	}
 
@@ -17,19 +17,19 @@ func (rh *RouteHandler) handleLoginApi(ctx context.Context, w http.ResponseWrite
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			rh.handleErr(w, err)
+			rh.handleErr(ctx, w, err)
 		}
 	}(r.Body)
 
 	resByte, err := rh.authFacade.Login(ctx, reqBytes)
 	if err != nil {
-		rh.handleErr(w, err)
+		rh.handleErr(ctx, w, err)
 		return
 	}
 
 	_, err = w.Write(resByte)
 	if err != nil {
-		rh.handleErr(w, err)
+		rh.handleErr(ctx, w, err)
 		return
 	}
 }

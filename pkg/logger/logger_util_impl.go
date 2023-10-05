@@ -27,12 +27,20 @@ func (u *UtilImpl) Error(msg string) {
 
 func (u *UtilImpl) DebugCtx(ctx context.Context, msg string) {
 	traceId := ctxutil.GetTraceIdFromCtx(ctx)
+	if traceId == "" {
+		u.Debug(msg)
+		return
+	}
 	msgToPrint := fmt.Sprintf("DEBUG: [TraceId: %s] %s", traceId, msg)
 	log.Println(msgToPrint)
 }
 
 func (u *UtilImpl) ErrorCtx(ctx context.Context, msg string) {
 	traceId := ctxutil.GetTraceIdFromCtx(ctx)
+	if traceId == "" {
+		u.Error(msg)
+		return
+	}
 	msgToPrint := fmt.Sprintf("ERROR: [TraceId: %s] %s", traceId, msg)
 	log.Println(msgToPrint)
 }

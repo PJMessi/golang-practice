@@ -16,7 +16,7 @@ type HttpHandlerWithCtx func(context.Context, http.ResponseWriter, *http.Request
 
 type ErrRes exception.Base
 
-func (rh *RouteHandler) handleErr(w http.ResponseWriter, err error) {
+func (rh *RouteHandler) handleErr(ctx context.Context, w http.ResponseWriter, err error) {
 	switch e := err.(type) {
 	case exception.InvalidReq:
 		rh.writeErrRes(w, http.StatusUnprocessableEntity, ErrRes(*e.Base))
@@ -40,9 +40,10 @@ func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		traceId, err := rh.uuidUtil.GenUuidV4()
 		if err != nil {
-			rh.handleErr(w, err)
+			rh.handleErr(context.Background(), w, fmt.Errorf("error while generating traceId"))
+			return
 		}
-		ctx := ctxutil.NewCtx(traceId)
+		ctx := ctxutil.NewCtxWithTraceId(traceId)
 
 		w.Header().Set("Content-Type", "application/json")
 
