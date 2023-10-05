@@ -8,6 +8,7 @@ import (
 	"github.com/pjmessi/go-database-usage/internal/pkg/database"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
 	"github.com/pjmessi/go-database-usage/pkg/hash"
+	"github.com/pjmessi/go-database-usage/pkg/logger"
 	"github.com/pjmessi/go-database-usage/pkg/password"
 	"github.com/pjmessi/go-database-usage/pkg/timeutil"
 	"github.com/pjmessi/go-database-usage/pkg/uuid"
@@ -19,14 +20,22 @@ type ServiceImpl struct {
 	hashUtil     hash.Util
 	passwordUtil password.Util
 	uuidUtil     uuid.Util
+	loggerUtil   logger.Util
 }
 
-func NewService(db database.Db, hashUtil hash.Util, passwordUtil password.Util, uuidUtil uuid.Util) Service {
+func NewService(
+	loggerUtil logger.Util,
+	db database.Db,
+	hashUtil hash.Util,
+	passwordUtil password.Util,
+	uuidUtil uuid.Util,
+) Service {
 	return &ServiceImpl{
 		db:           db,
 		hashUtil:     hashUtil,
 		passwordUtil: passwordUtil,
 		uuidUtil:     uuidUtil,
+		loggerUtil:   loggerUtil,
 	}
 }
 

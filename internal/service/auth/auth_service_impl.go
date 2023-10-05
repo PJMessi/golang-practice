@@ -8,20 +8,23 @@ import (
 	"github.com/pjmessi/go-database-usage/pkg/exception"
 	"github.com/pjmessi/go-database-usage/pkg/hash"
 	"github.com/pjmessi/go-database-usage/pkg/jwt"
+	"github.com/pjmessi/go-database-usage/pkg/logger"
 )
 
 type ServiceImpl struct {
 	Service
-	db       database.Db
-	hashUtil hash.Util
-	jwtUtil  jwt.Util
+	db         database.Db
+	hashUtil   hash.Util
+	jwtUtil    jwt.Util
+	loggerUtil logger.Util
 }
 
-func NewService(jwtUtil jwt.Util, db database.Db, hashUtil hash.Util) Service {
+func NewService(loggerUtil logger.Util, jwtUtil jwt.Util, db database.Db, hashUtil hash.Util) Service {
 	return &ServiceImpl{
-		db:       db,
-		hashUtil: hashUtil,
-		jwtUtil:  jwtUtil,
+		db:         db,
+		hashUtil:   hashUtil,
+		jwtUtil:    jwtUtil,
+		loggerUtil: loggerUtil,
 	}
 }
 

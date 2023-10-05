@@ -6,6 +6,7 @@ import (
 	"github.com/pjmessi/go-database-usage/internal/dto"
 	"github.com/pjmessi/go-database-usage/internal/model"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
+	"github.com/pjmessi/go-database-usage/pkg/logger"
 	"github.com/pjmessi/go-database-usage/pkg/structutil"
 	"github.com/pjmessi/go-database-usage/pkg/validation"
 )
@@ -13,12 +14,14 @@ import (
 type FacadeImpl struct {
 	authService    Service
 	validationUtil validation.Util
+	loggerUtil     logger.Util
 }
 
-func NewFacade(authService Service, validationUtil validation.Util) Facade {
+func NewFacade(loggerUtil logger.Util, authService Service, validationUtil validation.Util) Facade {
 	return &FacadeImpl{
 		authService:    authService,
 		validationUtil: validationUtil,
+		loggerUtil:     loggerUtil,
 	}
 }
 

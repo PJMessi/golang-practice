@@ -1,7 +1,6 @@
 package restapi
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"runtime"
@@ -27,7 +26,7 @@ func (rh *RouteHandler) handleErr(w http.ResponseWriter, err error) {
 	case exception.FailedPrecondition:
 		rh.writeErrRes(w, http.StatusBadRequest, ErrRes(*e.Base))
 	default:
-		log.Printf(fmt.Sprintf("unexpected error: %s", err.Error()))
+		log.Printf("unexpected error: %s", err.Error())
 		rh.writeInternalErrRes(w)
 	}
 }
