@@ -46,6 +46,7 @@ func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
 		ctx := ctxutil.NewCtxWithTraceId(traceId)
 
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Trace-ID", traceId)
 
 		defer func() {
 			if recoverRes := recover(); recoverRes != nil {
