@@ -34,7 +34,7 @@ func StartApp() {
 	hashUtil := hash.NewUtil()
 	passwordUtil := password.NewUtil()
 	uuidUtil := uuid.NewUtil()
-	jwtUtility, err := jwt.NewUtil(appConfig)
+	jwtUtility, err := jwt.NewUtil(loggerUtil, appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,9 +51,9 @@ func StartApp() {
 	router := restapi.RegisterRoutes(loggerUtil, authFacade, userFacade, uuidUtil)
 
 	// start http server
-	appPort := fmt.Sprintf(":%s", appConfig.APP_PORT)
-	loggerUtil.Debug(fmt.Sprintf("starting server on port %s", appPort))
-	if err := http.ListenAndServe(appPort, router); err != nil {
+	port := appConfig.APP_PORT
+	loggerUtil.Debug(fmt.Sprintf("🚀 starting GO server on port: %s", port))
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), router); err != nil {
 		loggerUtil.Debug(fmt.Sprintf("error while starting http server: %v", err))
 	}
 }

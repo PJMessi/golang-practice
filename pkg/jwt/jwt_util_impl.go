@@ -5,25 +5,29 @@ import (
 
 	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/pjmessi/golang-practice/config"
+	"github.com/pjmessi/golang-practice/pkg/logger"
 	"github.com/pjmessi/golang-practice/pkg/strutil"
 	"github.com/pjmessi/golang-practice/pkg/timeutil"
 )
 
 type UtilImpl struct {
 	Util
-	secret              []byte
-	expirationTimestamp int64
+	secret          []byte
+	jwtExpTimeInSec int64
 }
 
-func NewUtil(appConfig *config.AppConfig) (Util, error) {
-	expirationTime, err := timeutil.GetTimestampAfterDurationStr(appConfig.JWT_EXPIRATION_TIME)
+func NewUtil(loggerUtil logger.Util, appConfig *config.AppConfig) (Util, error) {
+	jwtExpTimeDurationStr := appConfig.JWT_EXPIRATION_TIME
+	jwtExpTimeInSec, err := timeutil.ConvertDurationStrToSec(jwtExpTimeDurationStr)
 	if err != nil {
 		return nil, fmt.Errorf("jwt.NewUtil: %w", err)
 	}
 
+	loggerUtil.Debug(fmt.Sprintf("jwt expiration time set to: '%s' i.e '%d' seconds", jwtExpTimeDurationStr, jwtExpTimeInSec))
+
 	return &UtilImpl{
-		secret:              strutil.ConvertToBytes(appConfig.JWT_SECRET),
-		expirationTimestamp: expirationTime,
+		secret:          strutil.ConvertToBytes(appConfig.JWT_SECRET),
+		jwtExpTimeInSec: jwtExpTimeInSec,
 	}, nil
 }
 
@@ -43,6 +47,6 @@ func (u *UtilImpl) createJwtClaims(userId string, userEmail string) jwtgo.MapCla
 	return jwtgo.MapClaims{
 		"user_id":    userId,
 		"user_email": userEmail,
-		"exp":        u.expirationTimestamp,
+		"exp":        timeutil.GetTimestampAfterSec(u.jwtExpTimeInSec),
 	}
 }

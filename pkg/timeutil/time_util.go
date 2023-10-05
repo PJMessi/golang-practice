@@ -37,13 +37,8 @@ func ConvertDurationStrToSec(durationStr string) (seconds int64, err error) {
 	return seconds, nil
 }
 
-func GetTimestampAfterDurationStr(durationStr string) (timestamp int64, err error) {
-	seconds, err := ConvertDurationStrToSec(durationStr)
-	if err != nil {
-		return 0, err
-	}
-
-	return time.Now().Add(time.Second * time.Duration(seconds)).Unix(), nil
+func GetTimestampAfterSec(seconds int64) int64 {
+	return time.Now().Add(time.Second * time.Duration(seconds)).Unix()
 }
 
 func GetCurrentDateTimeStr() time.Time {
