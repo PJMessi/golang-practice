@@ -1,3 +1,5 @@
+README in progress
+
 When creating a basic project structure in the Go programming language, it's important to follow some conventions to keep your code organized and maintainable. Here's a simple project structure for a Go application:
 
 go

@@ -42,3 +42,4 @@ pkg/
 # Uncomment if you want to ignore the go
 
 .env*
+!.env.example
