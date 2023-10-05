@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pjmessi/go-database-usage/internal/model"
 	"github.com/pjmessi/go-database-usage/internal/pkg/database"
@@ -34,16 +35,19 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 		return model.User{}, "", err
 	}
 	if !userExists {
+		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' does not exist", email))
 		return model.User{}, "", exception.NewUnauthenticated()
 	}
 
 	if user.Password == nil {
+		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' hasn't setup his password", email))
 		return model.User{}, "", exception.NewUnauthenticatedFromBase(exception.Base{
 			Type: "UNAUTHENTICATED.PASSWORD_NOT_SET",
 		})
 	}
 
 	if isValidHash := s.hashUtil.VerifyHash(*user.Password, password); !isValidHash {
+		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' did not provide correct password", email))
 		return model.User{}, "", exception.NewUnauthenticated()
 	}
 

@@ -45,6 +45,7 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 		return model.User{}, err
 	}
 	if isEmailTaken {
+		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' already exists", email))
 		return model.User{}, exception.NewAlreadyExistsFromBase(exception.Base{
 			Message: fmt.Sprintf("user with the email '%s' already exists", email),
 			Type:    "USER.ALREADY_EXISTS",
@@ -56,6 +57,7 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 		return model.User{}, err
 	}
 	if !isPwStrong {
+		s.loggerUtil.DebugCtx(ctx, "user did not provide strong password")
 		return model.User{}, exception.NewInvalidReqFromBase(exception.Base{
 			Message: "password is not strong enough",
 		})

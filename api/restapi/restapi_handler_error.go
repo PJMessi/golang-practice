@@ -1,13 +1,18 @@
 package restapi
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"runtime"
 
+	"github.com/pjmessi/go-database-usage/pkg/ctxutil"
 	"github.com/pjmessi/go-database-usage/pkg/exception"
 	"github.com/pjmessi/go-database-usage/pkg/structutil"
 )
+
+type HttpHandlerWithCtx func(context.Context, http.ResponseWriter, *http.Request)
 
 type ErrRes exception.Base
 
@@ -31,22 +36,26 @@ func (rh *RouteHandler) handleErr(w http.ResponseWriter, err error) {
 	}
 }
 
-func (rh *RouteHandler) handlePanic(next http.HandlerFunc) http.HandlerFunc {
+func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		traceId, err := rh.uuidUtil.GenUuidV4()
+		if err != nil {
+			rh.handleErr(w, err)
+		}
+		ctx := ctxutil.NewCtx(traceId)
+
 		w.Header().Set("Content-Type", "application/json")
 
 		defer func() {
 			if recoverRes := recover(); recoverRes != nil {
 				stack := make([]byte, 1024)
 				runtime.Stack(stack, false)
-
-				log.Printf("recovered from panic: %v\n%s", recoverRes, stack)
-
+				rh.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("recovered from panice: %v\n%s", recoverRes, stack))
 				rh.writeInternalErrRes(w)
 			}
 		}()
 
-		next(w, r)
+		next(ctx, w, r)
 	}
 }
 
