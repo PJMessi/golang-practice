@@ -18,11 +18,11 @@ import (
 )
 
 // setupMocksForServiceImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMockImpl, *hash.UtilMockImpl, *jwt.UtilMockImpl, *logger.UtilMockImpl) {
+func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMockImpl, *hash.UtilMockImpl, *jwt.UtilMockImpl, *logger.UtilMock) {
 	dbMock := new(database.DbMockImpl)
 	hashUtilMock := new(hash.UtilMockImpl)
 	jwtUtilMock := new(jwt.UtilMockImpl)
-	loggerUtilMock := new(logger.UtilMockImpl)
+	loggerUtilMock := new(logger.UtilMock)
 	service := &ServiceImpl{
 		db:         dbMock,
 		hashUtil:   hashUtilMock,
@@ -30,6 +30,29 @@ func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMockImpl, *hash.U
 		loggerUtil: loggerUtilMock,
 	}
 	return service, dbMock, hashUtilMock, jwtUtilMock, loggerUtilMock
+}
+
+// setupMocksForNewService returns mocked dependencies for NewService func
+func setupMocksForNewService() (*database.DbMockImpl, *hash.UtilMockImpl, *jwt.UtilMockImpl, *logger.UtilMock) {
+	dbMock := new(database.DbMockImpl)
+	hashUtilMock := new(hash.UtilMockImpl)
+	jwtUtilMock := new(jwt.UtilMockImpl)
+	loggerUtilMock := new(logger.UtilMock)
+	return dbMock, hashUtilMock, jwtUtilMock, loggerUtilMock
+}
+
+func Test_NewService(t *testing.T) {
+	// ARRANGE
+	dbMock, hashUtilMock, jwtUtilMock, loggerUtilMock := setupMocksForNewService()
+
+	// ACT
+	res := NewService(loggerUtilMock, jwtUtilMock, dbMock, hashUtilMock)
+
+	// ARRANGE
+	resServiceImpl := res.(*ServiceImpl)
+
+	assert.IsType(t, &ServiceImpl{}, res)
+	assert.Equal(t, res, resServiceImpl)
 }
 
 func Test_Service_Login_User_Doesnt_exist(t *testing.T) {

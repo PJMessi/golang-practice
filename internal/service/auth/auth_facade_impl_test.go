@@ -17,16 +17,38 @@ import (
 )
 
 // setupMocksForFacadeImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.UtilMockImpl, *validation.UtilMock) {
+func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.UtilMock, *validation.UtilMock) {
 	authService := new(ServiceMock)
 	validationUtilMock := new(validation.UtilMock)
-	loggerUtilMock := new(logger.UtilMockImpl)
+	loggerUtilMock := new(logger.UtilMock)
 	authFacade := &FacadeImpl{
 		authService:    authService,
 		loggerUtil:     loggerUtilMock,
 		validationUtil: validationUtilMock,
 	}
 	return authFacade, authService, loggerUtilMock, validationUtilMock
+}
+
+// setupMocksForNewService returns mocked dependencies for NewService func
+func setupMocksForNewFacade() (*logger.UtilMock, *ServiceMock, *validation.UtilMock) {
+	validationUtilMock := new(validation.UtilMock)
+	loggerUtilMock := new(logger.UtilMock)
+	authServiceMock := new(ServiceMock)
+	return loggerUtilMock, authServiceMock, validationUtilMock
+}
+
+func Test_NewFacade(t *testing.T) {
+	// ARRANGE
+	loggerUtilMock, serviceMock, validatonUtilMock := setupMocksForNewFacade()
+
+	// ACT
+	res := NewFacade(loggerUtilMock, serviceMock, validatonUtilMock)
+
+	// ARRANGE
+	resServiceImpl := res.(*FacadeImpl)
+
+	assert.IsType(t, &FacadeImpl{}, res)
+	assert.Equal(t, res, resServiceImpl)
 }
 
 func Test_Facade_Login_Invalid_Struct_In_Req_Bytes(t *testing.T) {

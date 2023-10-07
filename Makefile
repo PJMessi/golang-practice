@@ -5,6 +5,7 @@ GOCLEAN = $(GOCMD) clean
 GOTEST = $(GOCMD) test
 GOGET = $(GOCMD) get
 BINARY_NAME = myapp
+GOTOOL = $(GOCMD) tool
 
 all: build
 
@@ -24,5 +25,12 @@ deps:
 
 test:
 	$(GOTEST) -v ./...
+
+testcov:
+	$(GOTEST) -coverprofile=coverage.out ./...
+
+testcovrep:
+	$(GOTEST) -coverprofile=coverage.out ./...
+	$(GOTOOL) cover -html=coverage.out
 
 .PHONY: all build clean run deps test
