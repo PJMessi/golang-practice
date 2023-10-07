@@ -1,9 +1,7 @@
 package main
 
-import (
-	app "github.com/pjmessi/golang-practice/cmd/app"
-)
+import "github.com/pjmessi/golang-practice/cmd/restapi"
 
 func main() {
-	app.StartApp()
+	restapi.StartApp()
 }

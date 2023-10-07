@@ -8,7 +8,7 @@ import (
 
 type Db interface {
 	CloseConnection()
-	IsHealthy() bool
+	CheckHealth() error
 
 	CreateUser(ctx context.Context, user *model.User) error
 	IsUserEmailTaken(ctx context.Context, email string) (isTaken bool, err error)

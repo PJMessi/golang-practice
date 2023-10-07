@@ -1,11 +1,10 @@
-package app
+package restapi
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/pjmessi/golang-practice/api/restapi"
 	"github.com/pjmessi/golang-practice/config"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
@@ -25,6 +24,10 @@ func StartApp() {
 	var db, err = database.NewDb(appConfig)
 	if err != nil {
 		log.Fatal(err)
+	}
+	err = db.CheckHealth()
+	if err != nil {
+		log.Fatalf(err.Error())
 	}
 	defer db.CloseConnection()
 
@@ -48,7 +51,7 @@ func StartApp() {
 	authFacade := auth.NewFacade(loggerUtil, authService, validationUtil)
 
 	// register REST API routes
-	router := restapi.RegisterRoutes(loggerUtil, authFacade, userFacade, uuidUtil)
+	router := RegisterRoutes(loggerUtil, authFacade, userFacade, uuidUtil)
 
 	// start http server
 	port := appConfig.APP_PORT

@@ -17,7 +17,8 @@ type RawDbImpl struct {
 }
 
 func NewDb(appConf *config.AppConfig) (Db, error) {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", appConf.DB_USER, appConf.DB_PASSWORD, appConf.DB_HOST, appConf.DB_PORT, appConf.DB_DATABASE))
+	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", appConf.DB_USER, appConf.DB_PASSWORD, appConf.DB_HOST, appConf.DB_PORT, appConf.DB_DATABASE)
+	db, err := sql.Open("mysql", dns)
 	if err != nil {
 		return nil, fmt.Errorf("database.NewDbImpl: %w", err)
 	}
@@ -33,12 +34,11 @@ func NewDb(appConf *config.AppConfig) (Db, error) {
 	return impl, nil
 }
 
-func (r *RawDbImpl) IsHealthy() bool {
+func (r *RawDbImpl) CheckHealth() error {
 	var total int
 	res, err := r.db.Query("SELECT 2 + 2;")
 	if err != nil {
-		log.Println(fmt.Errorf("database.IsHealthy: %w", err))
-		return false
+		return fmt.Errorf("database.IsHealthy: %w", err)
 	}
 
 	defer res.Close()
@@ -47,14 +47,15 @@ func (r *RawDbImpl) IsHealthy() bool {
 		log.Println(res.Columns())
 		err := res.Scan(&total)
 		if err != nil {
-			log.Println(fmt.Errorf("database.IsHealthy: %w", err))
-			return false
+			return fmt.Errorf("database.IsHealthy: %w", err)
 		}
 	}
 
-	log.Printf("database.IsHealthy result: %d", total)
+	if total != 4 {
+		return fmt.Errorf("database.IsHealthy: expected result 4 but received %d", total)
+	}
 
-	return total == 4
+	return nil
 }
 
 func (r *RawDbImpl) CreateUser(ctx context.Context, user *model.User) error {

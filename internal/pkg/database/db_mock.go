@@ -11,9 +11,9 @@ type DbMockImpl struct {
 	mock.Mock
 }
 
-func (r *DbMockImpl) IsHealthy() bool {
+func (r *DbMockImpl) CheckHealth() error {
 	args := r.Called()
-	return args.Bool(0)
+	return args.Error(0)
 }
 
 func (r *DbMockImpl) CreateUser(ctx context.Context, user *model.User) error {
