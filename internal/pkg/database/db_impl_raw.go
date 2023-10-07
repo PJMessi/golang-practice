@@ -16,7 +16,7 @@ type RawDbImpl struct {
 	db *sql.DB
 }
 
-func NewDbImpl(appConf *config.AppConfig) (Db, error) {
+func NewDb(appConf *config.AppConfig) (Db, error) {
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", appConf.DB_USER, appConf.DB_PASSWORD, appConf.DB_HOST, appConf.DB_PORT, appConf.DB_DATABASE))
 	if err != nil {
 		return nil, fmt.Errorf("database.NewDbImpl: %w", err)

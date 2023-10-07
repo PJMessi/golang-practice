@@ -22,7 +22,7 @@ func StartApp() {
 	appConfig := config.GetAppConfig()
 
 	// initialize database connection
-	var db, err = database.NewDbImpl(appConfig)
+	var db, err = database.NewDb(appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
