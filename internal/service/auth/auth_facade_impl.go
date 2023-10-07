@@ -2,8 +2,10 @@ package auth
 
 import (
 	"context"
+	"log"
 
 	"github.com/pjmessi/golang-practice/internal/dto"
+	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
@@ -30,7 +32,8 @@ func (f *FacadeImpl) Login(ctx context.Context, reqBytes []byte) ([]byte, error)
 
 	err := structutil.ConvertFromBytes(reqBytes, &req)
 	if err != nil {
-		return nil, exception.NewInvalidReqFromBase(exception.Base{Message: "missing request data"})
+		log.Println("praprajpasfdasdfasdfafd")
+		return nil, exception.NewInvalidReqFromBase(exception.Base{Message: errorcode.ReqDataMissing})
 	}
 
 	err = f.validationUtil.ValidateStruct(req)

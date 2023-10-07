@@ -8,6 +8,7 @@ import (
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/hash"
 	"github.com/pjmessi/golang-practice/pkg/jwt"
@@ -16,119 +17,133 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// service and dependencies
-var (
-	authService    Service
-	dbMock         database.DbMockImpl
-	hashUtilMock   hash.UtilMockImpl
-	jwtUtilMock    jwt.UtilMockImpl
-	loggerUtilMock logger.UtilMockImpl
-)
-
-// setupMocks reset dependencies mocks
-func setupMocks() {
-	dbMock = database.DbMockImpl{}
-	hashUtilMock = hash.UtilMockImpl{}
-	jwtUtilMock = jwt.UtilMockImpl{}
-	loggerUtilMock = logger.UtilMockImpl{}
-	authService = NewService(&loggerUtilMock, &jwtUtilMock, &dbMock, &hashUtilMock)
+// setupMocksForServiceImplTest creates ServiceImpl with mocked dependencies
+func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMockImpl, *hash.UtilMockImpl, *jwt.UtilMockImpl, *logger.UtilMockImpl) {
+	dbMock := new(database.DbMockImpl)
+	hashUtilMock := new(hash.UtilMockImpl)
+	jwtUtilMock := new(jwt.UtilMockImpl)
+	loggerUtilMock := new(logger.UtilMockImpl)
+	service := &ServiceImpl{
+		db:         dbMock,
+		hashUtil:   hashUtilMock,
+		jwtUtil:    jwtUtilMock,
+		loggerUtil: loggerUtilMock,
+	}
+	return service, dbMock, hashUtilMock, jwtUtilMock, loggerUtilMock
 }
 
-var (
-	ctx      context.Context
-	email    string
-	password string
-
-	user   model.User
-	jwtStr string
-)
-
-func setupVars() {
-	email = "prajwalshrestha@test.com"
-	password = "i_love_golang_3000"
-	ctx = context.Background()
-
-	hashedPw := fmt.Sprintf("hashed_%s", password)
-	user = model.User{Email: email, Password: &hashedPw}
-	jwtStr = "jwt_for_prajwalshrestha@test.com"
-}
-
-func Test_Login_User_Doesnt_exist(t *testing.T) {
+func Test_Service_Login_User_Doesnt_exist(t *testing.T) {
 	// ARRANGE
-	setupMocks()
-	setupVars()
+	service, dbMock, _, _, loggerUtilMock := setupMocksForServiceImplTest()
+
+	ctx := context.Background()
+	email := testutil.Fake.Internet().Email()
+	password := testutil.Fake.Internet().Password()
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(false, model.User{}, nil)
 
 	// ACT
-	_, _, errRes := authService.Login(ctx, email, password)
+	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
 
 	// ASSERT
-	expectedErrStr := exception.NewUnauthenticated().Error()
+	expectedUserRes := model.User{}
+	expectedJwtStrRes := ""
+	expectedErr := exception.NewUnauthenticated()
 	expectedLogStr := fmt.Sprintf("user with the email '%s' does not exist", email)
-	assert.EqualError(t, errRes, expectedErrStr)
+
+	assert.Equal(t, userRes, expectedUserRes)
+	assert.Equal(t, jwtStrRes, expectedJwtStrRes)
+	assert.Equal(t, errRes, expectedErr)
 	loggerUtilMock.AssertCalled(t, "DebugCtx", ctx, expectedLogStr)
 }
 
-func Test_Login_Err_Getting_User_By_Email(t *testing.T) {
+func Test_Service_Login_Err_Getting_User_By_Email(t *testing.T) {
 	// ARRANGE
-	setupMocks()
-	setupVars()
+	service, dbMock, _, _, loggerUtilMock := setupMocksForServiceImplTest()
+
+	ctx := context.Background()
+	email := testutil.Fake.Internet().Email()
+	password := testutil.Fake.Internet().Password()
 
 	getUserByEmailErr := fmt.Errorf("error from GetUserByEmail")
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(false, model.User{}, getUserByEmailErr)
 
 	// ACT
-	_, _, errRes := authService.Login(ctx, email, password)
+	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
 
 	// ASSERT
-	assert.EqualError(t, errRes, getUserByEmailErr.Error())
+	expectedUserRes := model.User{}
+	expectedJwtStrRes := ""
+	expectedErr := getUserByEmailErr
+
+	assert.Equal(t, userRes, expectedUserRes)
+	assert.Equal(t, jwtStrRes, expectedJwtStrRes)
+	assert.Equal(t, errRes, expectedErr)
 }
 
-func Test_Login_User_Hasnt_Setup_Pw(t *testing.T) {
+func Test_Service_Login_User_Hasnt_Setup_Pw(t *testing.T) {
 	// ARRANGE
-	setupMocks()
-	setupVars()
+	service, dbMock, _, _, loggerUtilMock := setupMocksForServiceImplTest()
+
+	ctx := context.Background()
+	email := testutil.Fake.Internet().Email()
+	password := testutil.Fake.Internet().Password()
+	user := testutil.GenMockUser(&model.User{Email: email})
 
 	user.Password = nil
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
 
 	// ACT
-	_, _, errRes := authService.Login(ctx, email, password)
+	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
 
 	// ASSERT
-	expectedErrStr := exception.NewUnauthenticatedFromBase(exception.Base{Type: errorcode.UserPwNotSet}).Error()
-	expectedLogStr := fmt.Sprintf("user with the email '%s' hasn't setup his password", email)
-	assert.EqualError(t, errRes, expectedErrStr)
-	loggerUtilMock.AssertCalled(t, "DebugCtx", ctx, expectedLogStr)
+	expectedUserRes := model.User{}
+	expectedJwtStrRes := ""
+	expectedErr := exception.NewUnauthenticatedFromBase(exception.Base{Type: errorcode.UserPwNotSet})
+
+	assert.Equal(t, userRes, expectedUserRes)
+	assert.Equal(t, jwtStrRes, expectedJwtStrRes)
+	assert.Equal(t, errRes, expectedErr)
 }
 
-func Test_Login_Incorrect_Pw(t *testing.T) {
+func Test_Service_Login_Incorrect_Pw(t *testing.T) {
 	// ARRANGE
-	setupMocks()
-	setupVars()
+	service, dbMock, hashUtilMock, _, loggerUtilMock := setupMocksForServiceImplTest()
+
+	ctx := context.Background()
+	email := testutil.Fake.Internet().Email()
+	password := testutil.Fake.Internet().Password()
+	user := testutil.GenMockUser(&model.User{Email: email})
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
 	hashUtilMock.On("VerifyHash", *user.Password, password).Return(false)
 
 	// ACT
-	_, _, errRes := authService.Login(ctx, email, password)
+	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
 
 	// ASSERT
-	expectedErrStr := exception.NewUnauthenticated().Error()
-	expectedLogStr := fmt.Sprintf("user with the email '%s' did not provide correct password", email)
-	assert.EqualError(t, errRes, expectedErrStr)
-	loggerUtilMock.AssertCalled(t, "DebugCtx", ctx, expectedLogStr)
+	expectedUserRes := model.User{}
+	expectedJwtStrRes := ""
+	expectedErr := exception.NewUnauthenticated()
+
+	assert.Equal(t, userRes, expectedUserRes)
+	assert.Equal(t, jwtStrRes, expectedJwtStrRes)
+	assert.Equal(t, errRes, expectedErr)
 }
 
-func Test_Login_Success_Res(t *testing.T) {
+func Test_Service_Login_Success_Res(t *testing.T) {
 	// ARRANGE
-	setupMocks()
-	setupVars()
+	service, dbMock, hashUtilMock, jwtUtilMock, loggerUtilMock := setupMocksForServiceImplTest()
+
+	ctx := context.Background()
+	email := testutil.Fake.Internet().Email()
+	password := testutil.Fake.Internet().Password()
+	user := testutil.GenMockUser(&model.User{Email: email})
+	jwtStr := testutil.Fake.RandomStringWithLength(100)
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
@@ -136,19 +151,25 @@ func Test_Login_Success_Res(t *testing.T) {
 	jwtUtilMock.On("Generate", user.Id, user.Email).Return(jwtStr, nil)
 
 	// ACT
-	userRes, jwtStrRes, errRes := authService.Login(ctx, email, password)
+	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
 
 	// ASSERT
+	expectedUserRes := user
+	expectedJwtStrRes := jwtStr
+
+	assert.Equal(t, userRes, expectedUserRes)
+	assert.Equal(t, jwtStrRes, expectedJwtStrRes)
 	assert.Equal(t, errRes, nil)
-	assert.Equal(t, jwtStrRes, jwtStr)
-	assert.Equal(t, userRes, user)
 }
 
-func Test_Login_Err_Generating_Jwt(t *testing.T) {
+func Test_Service_Login_Err_Generating_Jwt(t *testing.T) {
 	// ARRANGE
-	setupMocks()
-	setupVars()
+	service, dbMock, hashUtilMock, jwtUtilMock, loggerUtilMock := setupMocksForServiceImplTest()
 
+	ctx := context.Background()
+	email := testutil.Fake.Internet().Email()
+	password := testutil.Fake.Internet().Password()
+	user := testutil.GenMockUser(&model.User{Email: email})
 	generateErr := fmt.Errorf("error from Generate")
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
@@ -157,8 +178,14 @@ func Test_Login_Err_Generating_Jwt(t *testing.T) {
 	jwtUtilMock.On("Generate", user.Id, user.Email).Return("", generateErr)
 
 	// ACT
-	_, _, errRes := authService.Login(ctx, email, password)
+	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
 
 	// ASSERT
-	assert.EqualError(t, errRes, generateErr.Error())
+	expectedUserRes := model.User{}
+	expectedJwtStrRes := ""
+	expectedErr := generateErr
+
+	assert.Equal(t, userRes, expectedUserRes)
+	assert.Equal(t, jwtStrRes, expectedJwtStrRes)
+	assert.Equal(t, errRes, expectedErr)
 }
