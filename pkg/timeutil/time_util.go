@@ -37,10 +37,10 @@ func ConvertDurationStrToSec(durationStr string) (seconds int64, err error) {
 	return seconds, nil
 }
 
-func GetTimestampAfterSec(seconds int64) int64 {
+func GetTimestampAfterNSec(seconds int64) int64 {
 	return time.Now().Add(time.Second * time.Duration(seconds)).Unix()
 }
 
-func GetCurrentDateTimeStr() time.Time {
+func GetCurrentTime() time.Time {
 	return time.Now()
 }

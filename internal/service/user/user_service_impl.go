@@ -84,6 +84,6 @@ func (s *ServiceImpl) createUserModel(email string, hashedPw string) (model.User
 		Id:        uuidStr,
 		Email:     email,
 		Password:  &hashedPw,
-		CreatedAt: timeutil.GetCurrentDateTimeStr(),
+		CreatedAt: timeutil.GetCurrentTime(),
 	}, nil
 }

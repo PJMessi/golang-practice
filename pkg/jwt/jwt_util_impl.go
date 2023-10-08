@@ -47,6 +47,6 @@ func (u *UtilImpl) createJwtClaims(userId string, userEmail string) jwtgo.MapCla
 	return jwtgo.MapClaims{
 		"user_id":    userId,
 		"user_email": userEmail,
-		"exp":        timeutil.GetTimestampAfterSec(u.jwtExpTimeInSec),
+		"exp":        timeutil.GetTimestampAfterNSec(u.jwtExpTimeInSec),
 	}
 }
