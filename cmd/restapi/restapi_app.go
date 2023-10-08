@@ -7,12 +7,12 @@ import (
 
 	"github.com/pjmessi/golang-practice/config"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/pkg/password"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
 	"github.com/pjmessi/golang-practice/pkg/hash"
 	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
-	"github.com/pjmessi/golang-practice/pkg/password"
 	"github.com/pjmessi/golang-practice/pkg/uuid"
 	"github.com/pjmessi/golang-practice/pkg/validation"
 )
@@ -35,7 +35,7 @@ func StartApp() {
 	loggerUtil := logger.NewUtil()
 	validationUtil := validation.NewUtil()
 	hashUtil := hash.NewUtil()
-	passwordUtil := password.NewUtil()
+	passwordUtil := password.NewUtil(hashUtil)
 	uuidUtil := uuid.NewUtil()
 	jwtUtility, err := jwt.NewUtil(loggerUtil, appConfig)
 	if err != nil {
@@ -43,8 +43,8 @@ func StartApp() {
 	}
 
 	// initialize services
-	userService := user.NewService(loggerUtil, db, hashUtil, passwordUtil, uuidUtil)
-	authService := auth.NewService(loggerUtil, jwtUtility, db, hashUtil)
+	userService := user.NewService(loggerUtil, db, passwordUtil, uuidUtil)
+	authService := auth.NewService(loggerUtil, jwtUtility, db, passwordUtil)
 
 	// initialize facades
 	userFacade := user.NewFacade(loggerUtil, userService, validationUtil)

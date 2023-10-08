@@ -7,26 +7,26 @@ import (
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/pkg/password"
 	"github.com/pjmessi/golang-practice/pkg/exception"
-	"github.com/pjmessi/golang-practice/pkg/hash"
 	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
 )
 
 type ServiceImpl struct {
 	Service
-	db         database.Db
-	hashUtil   hash.Util
-	jwtUtil    jwt.Util
-	loggerUtil logger.Util
+	db           database.Db
+	jwtUtil      jwt.Util
+	loggerUtil   logger.Util
+	passwordUtil password.Util
 }
 
-func NewService(loggerUtil logger.Util, jwtUtil jwt.Util, db database.Db, hashUtil hash.Util) Service {
+func NewService(loggerUtil logger.Util, jwtUtil jwt.Util, db database.Db, passwordUtil password.Util) Service {
 	return &ServiceImpl{
-		db:         db,
-		hashUtil:   hashUtil,
-		jwtUtil:    jwtUtil,
-		loggerUtil: loggerUtil,
+		db:           db,
+		jwtUtil:      jwtUtil,
+		loggerUtil:   loggerUtil,
+		passwordUtil: passwordUtil,
 	}
 }
 
@@ -47,7 +47,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 		})
 	}
 
-	if isValidHash := s.hashUtil.VerifyHash(*user.Password, password); !isValidHash {
+	if isValidHash := s.passwordUtil.IsHashCorrect(*user.Password, password); !isValidHash {
 		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' did not provide correct password", email))
 		return model.User{}, "", exception.NewUnauthenticated()
 	}

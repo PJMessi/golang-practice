@@ -7,10 +7,9 @@ import (
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/pkg/password"
 	"github.com/pjmessi/golang-practice/pkg/exception"
-	"github.com/pjmessi/golang-practice/pkg/hash"
 	"github.com/pjmessi/golang-practice/pkg/logger"
-	"github.com/pjmessi/golang-practice/pkg/password"
 	"github.com/pjmessi/golang-practice/pkg/timeutil"
 	"github.com/pjmessi/golang-practice/pkg/uuid"
 )
@@ -18,7 +17,6 @@ import (
 type ServiceImpl struct {
 	Service
 	db           database.Db
-	hashUtil     hash.Util
 	passwordUtil password.Util
 	uuidUtil     uuid.Util
 	loggerUtil   logger.Util
@@ -27,13 +25,11 @@ type ServiceImpl struct {
 func NewService(
 	loggerUtil logger.Util,
 	db database.Db,
-	hashUtil hash.Util,
 	passwordUtil password.Util,
 	uuidUtil uuid.Util,
 ) Service {
 	return &ServiceImpl{
 		db:           db,
-		hashUtil:     hashUtil,
 		passwordUtil: passwordUtil,
 		uuidUtil:     uuidUtil,
 		loggerUtil:   loggerUtil,
@@ -53,18 +49,14 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 		})
 	}
 
-	isPwStrong, err := s.passwordUtil.IsStrong(password)
-	if err != nil {
-		return model.User{}, err
-	}
-	if !isPwStrong {
+	if isPwStrong := s.passwordUtil.IsStrong(password); !isPwStrong {
 		s.loggerUtil.DebugCtx(ctx, "user did not provide strong password")
 		return model.User{}, exception.NewInvalidReqFromBase(exception.Base{
 			Message: "password is not strong enough",
 		})
 	}
 
-	hashedPw, err := s.hashUtil.GenerateHash(password)
+	hashedPw, err := s.passwordUtil.Hash(password)
 	if err != nil {
 		return model.User{}, err
 	}
