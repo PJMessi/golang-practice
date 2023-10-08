@@ -31,7 +31,7 @@ func ConvertDurationStrToSec(durationStr string) (seconds int64, err error) {
 	case "y":
 		seconds = int64(num) * 365 * 24 * 60 * 60 // 1 year = 365 days = 365 * 24 hours = 365 * 24 * 60 minutes = 365 * 24 * 60 * 60 seconds
 	default:
-		return 0, fmt.Errorf("unsupported unit: %s", unitStr)
+		return 0, fmt.Errorf("timeutil.ConvertDurationStrToSec: unsupported unit '%s'", unitStr)
 	}
 
 	return seconds, nil
