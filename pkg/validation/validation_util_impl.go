@@ -54,18 +54,3 @@ func (v *UtilImpl) prepareValErrDetails(valErrs validator.ValidationErrors) Vali
 		Details: details,
 	}
 }
-
-func (v *UtilImpl) FormatValidationError(err error) string {
-	var errs validator.ValidationErrors
-	if errors.As(err, &errs) {
-		errorMsg := ""
-		for _, vErr := range errs {
-			field := vErr.StructField()
-			tag := vErr.Tag()
-			errorMsg += fmt.Sprintf("'%s' validation failed for tag '%s'. ", field, tag)
-		}
-		return errorMsg
-	}
-
-	return err.Error()
-}
