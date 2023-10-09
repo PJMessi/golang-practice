@@ -113,9 +113,6 @@ func Test_CreateUser_Weak_Password(t *testing.T) {
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
 	password := "password"
-	errIsStrong := exception.NewInvalidReqFromBase(exception.Base{
-		Message: "password is not strong enough",
-	})
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
@@ -127,7 +124,9 @@ func Test_CreateUser_Weak_Password(t *testing.T) {
 	// ASSERT
 	expectedLogStr := "user did not provide strong password"
 	expectedUserRes := model.User{}
-	expectedErrRes := errIsStrong
+	expectedErrRes := exception.NewInvalidReqFromBase(exception.Base{
+		Message: "password is not strong enough",
+	})
 
 	assert.Equal(t, expectedUserRes, userRes)
 	assert.Equal(t, expectedErrRes, errRes)
