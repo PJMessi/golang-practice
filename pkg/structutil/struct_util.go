@@ -1,6 +1,8 @@
 package structutil
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 func ConvertToBytes(structData interface{}) ([]byte, error) {
 	responseInBytes, err := json.Marshal(structData)
@@ -12,8 +14,5 @@ func ConvertToBytes(structData interface{}) ([]byte, error) {
 }
 
 func ConvertFromBytes(byteData []byte, targetStruct interface{}) error {
-	if err := json.Unmarshal(byteData, targetStruct); err != nil {
-		return err
-	}
-	return nil
+	return json.Unmarshal(byteData, targetStruct)
 }

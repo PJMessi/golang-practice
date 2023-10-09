@@ -9,6 +9,7 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/ctxutil"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/structutil"
+	"github.com/pjmessi/golang-practice/pkg/strutil"
 )
 
 type HttpHandlerWithCtx func(context.Context, http.ResponseWriter, *http.Request)
@@ -18,6 +19,7 @@ type ErrRes exception.Base
 func (rh *RouteHandler) handleErr(ctx context.Context, w http.ResponseWriter, err error) {
 	switch e := err.(type) {
 	case exception.InvalidReq:
+		rh.convertDetailsKeyToCamelcase(&e)
 		rh.writeErrRes(ctx, w, http.StatusUnprocessableEntity, ErrRes(*e.Base))
 	case exception.NotFound:
 		rh.writeErrRes(ctx, w, http.StatusNotFound, ErrRes(*e.Base))
@@ -86,4 +88,13 @@ func (rh *RouteHandler) writeErrRes(ctx context.Context, w http.ResponseWriter, 
 	if err != nil {
 		rh.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("err while writing err response: %v", err))
 	}
+}
+
+func (rh *RouteHandler) convertDetailsKeyToCamelcase(validationErr *exception.InvalidReq) {
+	camelCaseDetails := map[string]string{}
+	for key, val := range *validationErr.Details {
+		camelcaseKey := strutil.PascalCaseToCamelCase(key)
+		camelCaseDetails[camelcaseKey] = val
+	}
+	*validationErr.Details = camelCaseDetails
 }
