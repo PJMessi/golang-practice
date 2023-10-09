@@ -73,19 +73,40 @@ func Test_Facade_Login_Invalid_Struct_Data_In_Req_Bytes(t *testing.T) {
 	facade, _, _, validationUtilMock := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	loginApiReq := testutil.GenLoginApiReq(nil)
+	loginApiReq := testutil.GenLoginApiReq(&model.LoginApiReq{Email: "invalidformat"})
 	reqBytes, _ := json.Marshal(loginApiReq)
-	validationErr := fmt.Errorf("error from ValidateStruct")
-	validationErrMsg := validationErr.Error()
+	validationErrDetails := map[string]string{}
+	validationErrDetails["email"] = "invalid email"
+	validationErr := validation.ValidationError{Details: validationErrDetails}
 
 	validationUtilMock.On("ValidateStruct", loginApiReq).Return(validationErr)
-	validationUtilMock.On("FormatValidationError", validationErr).Return(validationErrMsg)
 
 	// ACT
 	bytesRes, errRes := facade.Login(ctx, reqBytes)
 
 	// ARRANGE
-	expectedErr := exception.NewInvalidReqFromBase(exception.Base{Details: &validationErrMsg})
+	expectedErr := exception.NewInvalidReqFromBase(exception.Base{Details: &validationErrDetails})
+
+	assert.Equal(t, errRes, expectedErr)
+	assert.Nil(t, bytesRes)
+}
+
+func Test_Facade_Login_Error_While_Validating_Req_Bytes(t *testing.T) {
+	// ARRANGE
+	facade, _, _, validationUtilMock := setupMocksForFacadeImplTest()
+
+	ctx := context.Background()
+	loginApiReq := testutil.GenLoginApiReq(&model.LoginApiReq{Email: "invalidformat"})
+	reqBytes, _ := json.Marshal(loginApiReq)
+	validationErr := fmt.Errorf("error from validator.ValidateStruct")
+
+	validationUtilMock.On("ValidateStruct", loginApiReq).Return(validationErr)
+
+	// ACT
+	bytesRes, errRes := facade.Login(ctx, reqBytes)
+
+	// ARRANGE
+	expectedErr := validationErr
 
 	assert.Equal(t, errRes, expectedErr)
 	assert.Nil(t, bytesRes)

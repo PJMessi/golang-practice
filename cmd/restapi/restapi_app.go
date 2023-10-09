@@ -33,7 +33,10 @@ func StartApp() {
 
 	// initialize utilities
 	loggerUtil := logger.NewUtil()
-	validationUtil := validation.NewUtil()
+	validationUtil, err := validation.NewUtil()
+	if err != nil {
+		log.Fatal(err)
+	}
 	hashUtil := hash.NewUtil()
 	passwordUtil := password.NewUtil(hashUtil)
 	uuidUtil := uuid.NewUtil()

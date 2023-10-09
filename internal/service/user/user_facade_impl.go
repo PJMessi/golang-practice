@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/pjmessi/golang-practice/internal/dto"
 	"github.com/pjmessi/golang-practice/internal/model"
@@ -38,10 +39,14 @@ func (f *FacadeImpl) RegisterUser(ctx context.Context, reqBytes []byte) ([]byte,
 
 	err = f.validationUtil.ValidateStruct(req)
 	if err != nil {
-		details := f.validationUtil.FormatValidationError(err)
-		return nil, exception.NewInvalidReqFromBase(exception.Base{
-			Details: &details,
-		})
+		var valErr validation.ValidationError
+		if errors.As(err, &valErr) {
+			return nil, exception.NewInvalidReqFromBase(exception.Base{
+				Details: &valErr.Details,
+			})
+		} else {
+			return nil, err
+		}
 	}
 
 	user, err := f.userService.CreateUser(ctx, req.Email, req.Password)

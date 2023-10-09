@@ -7,9 +7,9 @@ import (
 )
 
 type Base struct {
-	Type    string  `json:"type"`
-	Message string  `json:"message"`
-	Details *string `json:"details,omitempty"`
+	Type    string `json:"type"`
+	Message string `json:"message"`
+	Details *map[string]string
 }
 
 func (e *Base) Error() string {

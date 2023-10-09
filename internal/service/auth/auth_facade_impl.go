@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 
 	"github.com/pjmessi/golang-practice/internal/dto"
 	"github.com/pjmessi/golang-practice/internal/errorcode"
@@ -36,10 +37,14 @@ func (f *FacadeImpl) Login(ctx context.Context, reqBytes []byte) ([]byte, error)
 
 	err = f.validationUtil.ValidateStruct(req)
 	if err != nil {
-		details := f.validationUtil.FormatValidationError(err)
-		return nil, exception.NewInvalidReqFromBase(exception.Base{
-			Details: &details,
-		})
+		var valErr validation.ValidationError
+		if errors.As(err, &valErr) {
+			return nil, exception.NewInvalidReqFromBase(exception.Base{
+				Details: &valErr.Details,
+			})
+		} else {
+			return nil, err
+		}
 	}
 
 	user, jwtStr, err := f.authService.Login(ctx, req.Email, req.Password)

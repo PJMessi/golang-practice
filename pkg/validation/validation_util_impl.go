@@ -9,26 +9,50 @@ import (
 
 type UtilImpl struct {
 	Util
-	validator *validator.Validate
+	validatorIns *validator.Validate
 }
 
-func NewUtil() Util {
+func NewUtil() (Util, error) {
+	validatorIns := validator.New()
+
+	if validatorIns == nil {
+		return nil, fmt.Errorf("validator.NewUtil: validatorIns is not initialized")
+	}
+
 	return &UtilImpl{
-		validator: validator.New(),
-	}
+		validatorIns: validatorIns,
+	}, nil
 }
 
+// ValidateStruct validates the provided struct based on struct tags besides the struct field names
 func (v *UtilImpl) ValidateStruct(s interface{}) error {
-	if v.validator == nil {
-		return fmt.Errorf("validation.ValidateStruct: validator has not been initialized")
+	err := v.validatorIns.Struct(s)
+
+	var validationErrs validator.ValidationErrors
+	var invalidValidationErr *validator.InvalidValidationError
+
+	if errors.As(err, &validationErrs) {
+		return v.prepareValErrDetails(validationErrs)
+
+	} else if errors.As(err, &invalidValidationErr) {
+		return &ValidationError{}
 	}
 
-	err := v.validator.Struct(s)
-	if err != nil {
-		return err
+	return err
+}
+
+func (v *UtilImpl) prepareValErrDetails(valErrs validator.ValidationErrors) ValidationError {
+	details := map[string]string{}
+
+	for _, valErr := range valErrs {
+		field := valErr.StructField()
+		tag := valErr.Tag()
+		details[field] = fmt.Sprintf("validation failed for tag: '%s'", tag)
 	}
 
-	return nil
+	return ValidationError{
+		Details: details,
+	}
 }
 
 func (v *UtilImpl) FormatValidationError(err error) string {
