@@ -211,7 +211,10 @@ func Test_CreateUser_Should_Save_User_In_Db(t *testing.T) {
 		return user.Email == email &&
 			*user.Password == passwordHash &&
 			user.Id == uuidStr &&
-			assert.WithinDuration(t, time.Now(), user.CreatedAt, time.Second)
+			assert.WithinDuration(t, time.Now(), user.CreatedAt, time.Second) &&
+			user.FirstName == nil &&
+			user.LastName == nil &&
+			user.UpdatedAt == nil
 	}))
 }
 
@@ -242,4 +245,35 @@ func Test_CreateUser_Error_Saving_User_In_Db(t *testing.T) {
 
 	assert.Equal(t, expectedUserRes, userRes)
 	assert.Equal(t, expectedErrRes, errRes)
+}
+
+func Test_CreateUser_Success_Res(t *testing.T) {
+	// ARRANGE
+	service, dbMock, passwordUtilMock, loggerUtilMock, uuidUtilMock := setupMocksForServiceImplTest()
+
+	ctx := context.Background()
+	email := testutil.Fake.Internet().Email()
+	password := "password"
+	passwordHash := testutil.Fake.RandomStringWithLength(100)
+	uuidStr := testutil.Fake.UUID().V4()
+
+	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
+	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
+	passwordUtilMock.On("IsStrong", password).Return(true)
+	passwordUtilMock.On("Hash", password).Return(passwordHash, nil)
+	uuidUtilMock.On("GenUuidV4").Return(uuidStr, nil)
+	dbMock.On("CreateUser", ctx, mock.Anything).Return(nil)
+
+	// ACT
+	userRes, errRes := service.CreateUser(ctx, email, password)
+
+	// ASSERT
+	assert.Equal(t, uuidStr, userRes.Id)
+	assert.Equal(t, email, userRes.Email)
+	assert.Equal(t, &passwordHash, userRes.Password)
+	assert.WithinDuration(t, time.Now(), userRes.CreatedAt, time.Second)
+	assert.Nil(t, userRes.UpdatedAt)
+	assert.Nil(t, userRes.FirstName)
+	assert.Nil(t, userRes.LastName)
+	assert.Equal(t, nil, errRes)
 }
