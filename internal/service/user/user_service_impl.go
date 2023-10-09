@@ -15,7 +15,6 @@ import (
 )
 
 type ServiceImpl struct {
-	Service
 	db           database.Db
 	passwordUtil password.Util
 	uuidUtil     uuid.Util
@@ -66,7 +65,7 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 		return model.User{}, err
 	}
 
-	err = (s.db).CreateUser(ctx, &user)
+	err = s.db.CreateUser(ctx, &user)
 	if err != nil {
 		return model.User{}, err
 	}
