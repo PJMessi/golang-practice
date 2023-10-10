@@ -51,7 +51,7 @@ func Test_NewFacade(t *testing.T) {
 	assert.Equal(t, res, resServiceImpl)
 }
 
-func Test_RegisterUser_Invalid_Struct_In_Req_Bytes(t *testing.T) {
+func Test_Facade_RegisterUser_Invalid_Struct_In_Req_Bytes(t *testing.T) {
 	// ARRANGE
 	facade, _, _, _ := setupMocksForFacadeImplTest()
 
