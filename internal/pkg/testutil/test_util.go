@@ -69,3 +69,23 @@ func GenLoginApiReq(partialData *model.LoginApiReq) model.LoginApiReq {
 		Password: password,
 	}
 }
+
+func GenRegUserApiReq(partialData *model.UserRegApiReq) model.UserRegApiReq {
+	email := Fake.Internet().Email()
+	password := Fake.Internet().Password()
+
+	if partialData != nil {
+		if email != "" {
+			email = partialData.Email
+		}
+
+		if password != "" {
+			password = partialData.Password
+		}
+	}
+
+	return model.UserRegApiReq{
+		Email:    email,
+		Password: password,
+	}
+}

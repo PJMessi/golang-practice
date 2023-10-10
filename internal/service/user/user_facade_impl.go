@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/pjmessi/golang-practice/internal/dto"
+	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
@@ -13,7 +14,6 @@ import (
 )
 
 type FacadeImpl struct {
-	Facade
 	userService    Service
 	validationUtil validation.Util
 	loggerUtil     logger.Util
@@ -33,7 +33,7 @@ func (f *FacadeImpl) RegisterUser(ctx context.Context, reqBytes []byte) ([]byte,
 	err := structutil.ConvertFromBytes(reqBytes, &req)
 	if err != nil {
 		return nil, exception.NewInvalidReqFromBase(exception.Base{
-			Message: "missing request data",
+			Message: errorcode.ReqDataMissing,
 		})
 	}
 
