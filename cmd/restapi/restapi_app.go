@@ -10,6 +10,7 @@ import (
 	"github.com/pjmessi/golang-practice/internal/pkg/password"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
+	"github.com/pjmessi/golang-practice/pkg/event"
 	"github.com/pjmessi/golang-practice/pkg/hash"
 	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
@@ -21,7 +22,7 @@ func StartApp() {
 	appConfig := config.GetAppConfig()
 
 	// initialize database connection
-	var db, err = database.NewDb(appConfig)
+	db, err := database.NewDb(appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,9 +49,13 @@ func StartApp() {
 	// initialize services
 	userService := user.NewService(loggerUtil, db, passwordUtil, uuidUtil)
 	authService := auth.NewService(loggerUtil, jwtUtility, db, passwordUtil)
+	eventPubService, err := event.NewPubService()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// initialize facades
-	userFacade := user.NewFacade(loggerUtil, userService, validationUtil)
+	userFacade := user.NewFacade(loggerUtil, userService, validationUtil, eventPubService)
 	authFacade := auth.NewFacade(loggerUtil, authService, validationUtil)
 
 	// register REST API routes
