@@ -16,7 +16,7 @@ func NewUtil() Util {
 func (u *UtilImpl) GenUuidV4() (string, error) {
 	uuidObj, err := uuid.NewUUID()
 	if err != nil {
-		return "", fmt.Errorf("GenUuidV4: %w", err)
+		return "", fmt.Errorf("uuid.GenUuidV4(): %w", err)
 	}
 	return uuidObj.String(), nil
 }

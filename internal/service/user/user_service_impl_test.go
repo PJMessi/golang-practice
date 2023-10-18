@@ -58,13 +58,14 @@ func Test_NewService(t *testing.T) {
 
 func Test_CreateUser_Email_Already_Taken(t *testing.T) {
 	// ARRANGE
-	service, dbMock, _, loggerUtilMock, _ := setupMocksForServiceImplTest()
+	service, dbMock, passwordUtilMock, loggerUtilMock, _ := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
 	password := testutil.Fake.Internet().Password()
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
+	passwordUtilMock.On("IsStrong", password).Return(true)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(true, nil)
 
 	// ACT
@@ -85,7 +86,7 @@ func Test_CreateUser_Email_Already_Taken(t *testing.T) {
 
 func Test_CreateUser_Error_Checking_If_Email_Taken(t *testing.T) {
 	// ARRANGE
-	service, dbMock, _, loggerUtilMock, _ := setupMocksForServiceImplTest()
+	service, dbMock, passwordUtilMock, loggerUtilMock, _ := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
@@ -93,6 +94,7 @@ func Test_CreateUser_Error_Checking_If_Email_Taken(t *testing.T) {
 	errIsUserEmailTaken := fmt.Errorf("error from IsUserEmailTaken")
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
+	passwordUtilMock.On("IsStrong", password).Return(true)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, errIsUserEmailTaken)
 
 	// ACT
@@ -196,17 +198,17 @@ func Test_CreateUser_Should_Save_User_In_Db(t *testing.T) {
 	uuidStr := testutil.Fake.UUID().V4()
 
 	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
-	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
 	passwordUtilMock.On("IsStrong", password).Return(true)
+	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
 	passwordUtilMock.On("Hash", password).Return(passwordHash, nil)
 	uuidUtilMock.On("GenUuidV4").Return(uuidStr, nil)
-	dbMock.On("CreateUser", ctx, mock.Anything).Return(nil)
+	dbMock.On("SaveUser", ctx, mock.Anything).Return(nil)
 
 	// ACT
 	service.CreateUser(ctx, email, password)
 
 	// ASSERT
-	dbMock.AssertCalled(t, "CreateUser", ctx, mock.MatchedBy(func(user *model.User) bool {
+	dbMock.AssertCalled(t, "SaveUser", ctx, mock.MatchedBy(func(user *model.User) bool {
 		return user.Email == email &&
 			*user.Password == passwordHash &&
 			user.Id == uuidStr &&
@@ -233,7 +235,7 @@ func Test_CreateUser_Error_Saving_User_In_Db(t *testing.T) {
 	passwordUtilMock.On("IsStrong", password).Return(true)
 	passwordUtilMock.On("Hash", password).Return(passwordHash, nil)
 	uuidUtilMock.On("GenUuidV4").Return(uuidStr, nil)
-	dbMock.On("CreateUser", ctx, mock.Anything).Return(errCreateUser)
+	dbMock.On("SaveUser", ctx, mock.Anything).Return(errCreateUser)
 
 	// ACT
 	userRes, errRes := service.CreateUser(ctx, email, password)
@@ -261,7 +263,7 @@ func Test_CreateUser_Success_Res(t *testing.T) {
 	passwordUtilMock.On("IsStrong", password).Return(true)
 	passwordUtilMock.On("Hash", password).Return(passwordHash, nil)
 	uuidUtilMock.On("GenUuidV4").Return(uuidStr, nil)
-	dbMock.On("CreateUser", ctx, mock.Anything).Return(nil)
+	dbMock.On("SaveUser", ctx, mock.Anything).Return(nil)
 
 	// ACT
 	userRes, errRes := service.CreateUser(ctx, email, password)

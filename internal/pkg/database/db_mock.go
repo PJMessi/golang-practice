@@ -16,7 +16,7 @@ func (r *DbMock) CheckHealth() error {
 	return args.Error(0)
 }
 
-func (r *DbMock) CreateUser(ctx context.Context, user *model.User) error {
+func (r *DbMock) SaveUser(ctx context.Context, user *model.User) error {
 	args := r.Called(ctx, user)
 	return args.Error(0)
 }

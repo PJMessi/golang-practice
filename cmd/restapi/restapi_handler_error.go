@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"time"
 
 	"github.com/pjmessi/golang-practice/pkg/ctxutil"
 	"github.com/pjmessi/golang-practice/pkg/exception"
@@ -58,7 +59,13 @@ func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
 			}
 		}()
 
+		startTime := time.Now()
+		rh.loggerUtil.DebugCtx(ctx, fmt.Sprintf("new request: %s %s", r.Method, r.URL.String()))
+
 		next(ctx, w, r)
+
+		difference := time.Since(startTime)
+		rh.loggerUtil.DebugCtx(ctx, fmt.Sprintf("request completed, took %d ms", difference.Milliseconds()))
 	}
 }
 

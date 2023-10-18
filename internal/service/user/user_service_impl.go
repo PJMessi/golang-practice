@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
@@ -36,23 +37,14 @@ func NewService(
 }
 
 func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password string) (model.User, error) {
-	isEmailTaken, err := s.db.IsUserEmailTaken(ctx, email)
-	if err != nil {
+	lowercaseEmail := strings.ToLower(email)
+
+	if err := s.ensureStrongPw(ctx, password); err != nil {
 		return model.User{}, err
 	}
-	if isEmailTaken {
-		s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' already exists", email))
-		return model.User{}, exception.NewAlreadyExistsFromBase(exception.Base{
-			Message: fmt.Sprintf("user with the email '%s' already exists", email),
-			Type:    errorcode.UserAlreadyExist,
-		})
-	}
 
-	if isPwStrong := s.passwordUtil.IsStrong(password); !isPwStrong {
-		s.loggerUtil.DebugCtx(ctx, "user did not provide strong password")
-		return model.User{}, exception.NewInvalidReqFromBase(exception.Base{
-			Message: "password is not strong enough",
-		})
+	if err := s.ensureEmailNotUsed(ctx, lowercaseEmail); err != nil {
+		return model.User{}, err
 	}
 
 	hashedPw, err := s.passwordUtil.Hash(password)
@@ -60,12 +52,12 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 		return model.User{}, err
 	}
 
-	user, err := s.createUserModel(email, hashedPw)
+	user, err := s.createUser(lowercaseEmail, hashedPw)
 	if err != nil {
 		return model.User{}, err
 	}
 
-	err = s.db.CreateUser(ctx, &user)
+	err = s.db.SaveUser(ctx, &user)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -73,7 +65,37 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 	return user, nil
 }
 
-func (s *ServiceImpl) createUserModel(email string, hashedPw string) (model.User, error) {
+func (s *ServiceImpl) ensureStrongPw(ctx context.Context, password string) error {
+	if isPwStrong := s.passwordUtil.IsStrong(password); !isPwStrong {
+		s.loggerUtil.DebugCtx(ctx, "user did not provide strong password")
+
+		return exception.NewInvalidReqFromBase(exception.Base{
+			Message: "password is not strong enough",
+		})
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) ensureEmailNotUsed(ctx context.Context, email string) error {
+	isEmailTaken, err := s.db.IsUserEmailTaken(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	if !isEmailTaken {
+		return nil
+	}
+
+	s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' already exists", email))
+
+	return exception.NewAlreadyExistsFromBase(exception.Base{
+		Message: fmt.Sprintf("user with the email '%s' already exists", email),
+		Type:    errorcode.UserAlreadyExist,
+	})
+}
+
+func (s *ServiceImpl) createUser(email string, hashedPw string) (model.User, error) {
 	uuidStr, err := s.uuidUtil.GenUuidV4()
 	if err != nil {
 		return model.User{}, err

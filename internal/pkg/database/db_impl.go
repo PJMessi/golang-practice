@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -38,41 +37,40 @@ func (r *RawDbImpl) CheckHealth() error {
 	var total int
 	res, err := r.db.Query("SELECT 2 + 2;")
 	if err != nil {
-		return fmt.Errorf("database.IsHealthy: %w", err)
+		return fmt.Errorf("database.CheckHealth(): %w", err)
 	}
 
 	defer res.Close()
 
 	if res.Next() {
-		log.Println(res.Columns())
 		err := res.Scan(&total)
 		if err != nil {
-			return fmt.Errorf("database.IsHealthy: %w", err)
+			return fmt.Errorf("database.CheckHealth(): %w", err)
 		}
 	}
 
 	if total != 4 {
-		return fmt.Errorf("database.IsHealthy: expected result 4 but received %d", total)
+		return fmt.Errorf("database.CheckHealth(): expected result 4 but received %d", total)
 	}
 
 	return nil
 }
 
-func (r *RawDbImpl) CreateUser(ctx context.Context, user *model.User) error {
+func (r *RawDbImpl) SaveUser(ctx context.Context, user *model.User) error {
 	stmt, err := r.db.Prepare("INSERT INTO users (id, email, password, first_name, last_name, created_at, updated_at) VALUE (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		return fmt.Errorf("database.CreateUser: %w", err)
+		return fmt.Errorf("database.SaveUser: %w", err)
 	}
 
 	defer func() {
 		if cerr := stmt.Close(); cerr != nil && err == nil {
-			err = fmt.Errorf("database.CreateUser: %w", cerr)
+			err = fmt.Errorf("database.SaveUser: %w", cerr)
 		}
 	}()
 
 	_, err = stmt.Exec(user.Id, user.Email, user.Password, user.FirstName, user.LastName, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
-		return fmt.Errorf("database.CreateUser: %w", err)
+		return fmt.Errorf("database.SaveUser: %w", err)
 	}
 
 	return nil

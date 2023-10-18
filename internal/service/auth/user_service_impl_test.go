@@ -163,7 +163,7 @@ func Test_Service_Login_Success_Res(t *testing.T) {
 	service, dbMock, passwordUtilMock, jwtUtilMock, loggerUtilMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
-	email := testutil.Fake.Internet().Email()
+	email := "PJMESSI25@icloud.com" // testutil.Fake.Internet().Email()
 	password := testutil.Fake.Internet().Password()
 	user := testutil.GenMockUser(&model.User{Email: email})
 	jwtStr := testutil.Fake.RandomStringWithLength(100)
