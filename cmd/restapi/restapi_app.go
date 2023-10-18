@@ -14,7 +14,6 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/hash"
 	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
-	"github.com/pjmessi/golang-practice/pkg/uuid"
 	"github.com/pjmessi/golang-practice/pkg/validation"
 )
 
@@ -40,14 +39,13 @@ func StartApp() {
 	}
 	hashUtil := hash.NewUtil()
 	passwordUtil := password.NewUtil(hashUtil)
-	uuidUtil := uuid.NewUtil()
 	jwtUtility, err := jwt.NewUtil(loggerUtil, appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// initialize services
-	userService := user.NewService(loggerUtil, db, passwordUtil, uuidUtil)
+	userService := user.NewService(loggerUtil, db, passwordUtil)
 	authService := auth.NewService(loggerUtil, jwtUtility, db, passwordUtil)
 	eventPubService, err := event.NewPubService(appConfig, loggerUtil)
 	if err != nil {
@@ -59,7 +57,7 @@ func StartApp() {
 	authFacade := auth.NewFacade(loggerUtil, authService, validationUtil)
 
 	// register REST API routes
-	router := RegisterRoutes(loggerUtil, authFacade, userFacade, uuidUtil)
+	router := RegisterRoutes(loggerUtil, authFacade, userFacade)
 
 	// start http server
 	port := appConfig.APP_PORT

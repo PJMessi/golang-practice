@@ -12,13 +12,12 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
 	"github.com/pjmessi/golang-practice/pkg/timeutil"
-	"github.com/pjmessi/golang-practice/pkg/uuid"
+	"github.com/pjmessi/golang-practice/pkg/uuidutil"
 )
 
 type ServiceImpl struct {
 	db           database.Db
 	passwordUtil password.Util
-	uuidUtil     uuid.Util
 	loggerUtil   logger.Util
 }
 
@@ -26,12 +25,10 @@ func NewService(
 	loggerUtil logger.Util,
 	db database.Db,
 	passwordUtil password.Util,
-	uuidUtil uuid.Util,
 ) Service {
 	return &ServiceImpl{
 		db:           db,
 		passwordUtil: passwordUtil,
-		uuidUtil:     uuidUtil,
 		loggerUtil:   loggerUtil,
 	}
 }
@@ -96,7 +93,7 @@ func (s *ServiceImpl) ensureEmailNotUsed(ctx context.Context, email string) erro
 }
 
 func (s *ServiceImpl) createUser(email string, hashedPw string) (model.User, error) {
-	uuidStr, err := s.uuidUtil.GenUuidV4()
+	uuidStr, err := uuidutil.GenUuidV4()
 	if err != nil {
 		return model.User{}, err
 	}

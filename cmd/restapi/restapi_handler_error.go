@@ -11,6 +11,7 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/structutil"
 	"github.com/pjmessi/golang-practice/pkg/strutil"
+	"github.com/pjmessi/golang-practice/pkg/uuidutil"
 )
 
 type HttpHandlerWithCtx func(context.Context, http.ResponseWriter, *http.Request)
@@ -40,7 +41,7 @@ func (rh *RouteHandler) handleErr(ctx context.Context, w http.ResponseWriter, er
 
 func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		traceId, err := rh.uuidUtil.GenUuidV4()
+		traceId, err := uuidutil.GenUuidV4()
 		if err != nil {
 			rh.handleErr(context.Background(), w, fmt.Errorf("error while generating traceId"))
 			return
