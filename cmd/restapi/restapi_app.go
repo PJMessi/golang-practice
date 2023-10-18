@@ -49,7 +49,7 @@ func StartApp() {
 	// initialize services
 	userService := user.NewService(loggerUtil, db, passwordUtil, uuidUtil)
 	authService := auth.NewService(loggerUtil, jwtUtility, db, passwordUtil)
-	eventPubService, err := event.NewPubService()
+	eventPubService, err := event.NewPubService(appConfig, loggerUtil)
 	if err != nil {
 		log.Fatal(err)
 	}

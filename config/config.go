@@ -16,6 +16,7 @@ type AppConfig struct {
 	DB_PASSWORD         string
 	JWT_SECRET          string
 	JWT_EXPIRATION_TIME string
+	NATS_URL            string
 }
 
 func GetAppConfig() *AppConfig {
@@ -33,6 +34,7 @@ func GetAppConfig() *AppConfig {
 		DB_PASSWORD:         os.Getenv("DB_PASSWORD"),
 		JWT_SECRET:          os.Getenv("JWT_SECRET"),
 		JWT_EXPIRATION_TIME: os.Getenv("JWT_EXPIRATION_TIME"),
+		NATS_URL:            os.Getenv("NATS_URL"),
 	}
 }
 

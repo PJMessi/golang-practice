@@ -4,20 +4,29 @@ import (
 	"fmt"
 
 	"github.com/nats-io/nats.go"
+	"github.com/pjmessi/golang-practice/config"
+	"github.com/pjmessi/golang-practice/pkg/logger"
 )
 
 type PubServiceNatsImpl struct {
-	nc *nats.Conn
+	nc         *nats.Conn
+	loggerUtil logger.Util
 }
 
-func NewPubService() (PubService, error) {
+func NewPubService(appConfig *config.AppConfig, loggerUtil logger.Util) (PubService, error) {
+	url := appConfig.NATS_URL
+	if url == "" {
+		url = nats.DefaultURL
+		loggerUtil.Debug(fmt.Sprintf("NATS url is not provided, so using default url of %s", url))
+	}
+
 	nc, err := nats.Connect(nats.DefaultURL)
 
 	if err != nil {
 		return nil, fmt.Errorf("nats.NewPublisherService(): %w", err)
 	}
 
-	return &PubServiceNatsImpl{nc: nc}, nil
+	return &PubServiceNatsImpl{nc: nc, loggerUtil: loggerUtil}, nil
 }
 
 func (p *PubServiceNatsImpl) Close() error {
