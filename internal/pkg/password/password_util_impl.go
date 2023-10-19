@@ -45,7 +45,7 @@ func (utility *UtilImpl) IsStrong(plainPw string) bool {
 }
 
 func (utility *UtilImpl) Hash(plainPw string) (string, error) {
-	hashedPw, err := hashutil.GenerateHash(plainPw)
+	hashedPw, err := hashutil.Generate(plainPw)
 	if err != nil {
 		return "", fmt.Errorf("password.Hash(): %w", err)
 	}
@@ -54,6 +54,6 @@ func (utility *UtilImpl) Hash(plainPw string) (string, error) {
 }
 
 func (utility *UtilImpl) IsHashCorrect(hashedPw string, plainPw string) bool {
-	isValidHash := hashutil.VerifyHash(hashedPw, plainPw)
+	isValidHash := hashutil.Verify(hashedPw, plainPw)
 	return isValidHash
 }
