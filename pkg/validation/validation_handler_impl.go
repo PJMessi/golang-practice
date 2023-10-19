@@ -7,25 +7,25 @@ import (
 	"github.com/go-playground/validator"
 )
 
-type UtilImpl struct {
-	Util
+type HandlerImpl struct {
+	Handler
 	validatorIns *validator.Validate
 }
 
-func NewUtil() (Util, error) {
+func NewHandler() (Handler, error) {
 	validatorIns := validator.New()
 
 	if validatorIns == nil {
 		return nil, fmt.Errorf("validator.NewUtil: validatorIns is not initialized")
 	}
 
-	return &UtilImpl{
+	return &HandlerImpl{
 		validatorIns: validatorIns,
 	}, nil
 }
 
 // ValidateStruct validates the provided struct based on struct tags besides the struct field names
-func (v *UtilImpl) ValidateStruct(s interface{}) error {
+func (v *HandlerImpl) ValidateStruct(s interface{}) error {
 	err := v.validatorIns.Struct(s)
 
 	var validationErrs validator.ValidationErrors
@@ -41,7 +41,7 @@ func (v *UtilImpl) ValidateStruct(s interface{}) error {
 	return err
 }
 
-func (v *UtilImpl) prepareValErrDetails(valErrs validator.ValidationErrors) ValidationError {
+func (v *HandlerImpl) prepareValErrDetails(valErrs validator.ValidationErrors) ValidationError {
 	details := map[string]string{}
 
 	for _, valErr := range valErrs {

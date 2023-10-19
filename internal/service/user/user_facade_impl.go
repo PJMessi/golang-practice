@@ -16,18 +16,18 @@ import (
 )
 
 type FacadeImpl struct {
-	userService     Service
-	validationUtil  validation.Util
-	logService      logger.Service
-	eventPubService event.PubService
+	userService       Service
+	validationHandler validation.Handler
+	logService        logger.Service
+	eventPubService   event.PubService
 }
 
-func NewFacade(logService logger.Service, userService Service, validationUtil validation.Util, eventPubService event.PubService) Facade {
+func NewFacade(logService logger.Service, userService Service, validationHandler validation.Handler, eventPubService event.PubService) Facade {
 	return &FacadeImpl{
-		userService:     userService,
-		validationUtil:  validationUtil,
-		logService:      logService,
-		eventPubService: eventPubService,
+		userService:       userService,
+		validationHandler: validationHandler,
+		logService:        logService,
+		eventPubService:   eventPubService,
 	}
 }
 
@@ -41,7 +41,7 @@ func (f *FacadeImpl) RegisterUser(ctx context.Context, reqBytes []byte) ([]byte,
 		})
 	}
 
-	err = f.validationUtil.ValidateStruct(req)
+	err = f.validationHandler.ValidateStruct(req)
 	if err != nil {
 		var valErr validation.ValidationError
 		if errors.As(err, &valErr) {

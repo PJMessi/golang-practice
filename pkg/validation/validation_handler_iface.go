@@ -1,6 +1,6 @@
 package validation
 
-type Util interface {
+type Handler interface {
 	ValidateStruct(s interface{}) error
 }
 

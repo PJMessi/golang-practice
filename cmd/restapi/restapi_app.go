@@ -31,7 +31,7 @@ func StartApp() {
 
 	// initialize common services
 	logService := logger.NewService()
-	validationUtil, err := validation.NewUtil()
+	validationHandler, err := validation.NewHandler()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,8 +49,8 @@ func StartApp() {
 	}
 
 	// initialize facades
-	userFacade := user.NewFacade(logService, userService, validationUtil, eventPubService)
-	authFacade := auth.NewFacade(logService, authService, validationUtil)
+	userFacade := user.NewFacade(logService, userService, validationHandler, eventPubService)
+	authFacade := auth.NewFacade(logService, authService, validationHandler)
 
 	// register REST API routes
 	router := RegisterRoutes(logService, authFacade, userFacade)

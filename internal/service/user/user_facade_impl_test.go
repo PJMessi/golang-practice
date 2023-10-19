@@ -19,23 +19,23 @@ import (
 )
 
 // setupMocksForFacadeImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.ServiceMock, *validation.UtilMock, *event.PubServiceMock) {
+func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.ServiceMock, *validation.HandlerMock, *event.PubServiceMock) {
 	userService := new(ServiceMock)
-	validationUtilMock := new(validation.UtilMock)
+	validationUtilMock := new(validation.HandlerMock)
 	logServiceMock := new(logger.ServiceMock)
 	eventPubService := new(event.PubServiceMock)
 	authFacade := &FacadeImpl{
-		userService:     userService,
-		logService:      logServiceMock,
-		validationUtil:  validationUtilMock,
-		eventPubService: eventPubService,
+		userService:       userService,
+		logService:        logServiceMock,
+		validationHandler: validationUtilMock,
+		eventPubService:   eventPubService,
 	}
 	return authFacade, userService, logServiceMock, validationUtilMock, eventPubService
 }
 
 // setupMocksForNewService returns mocked dependencies for NewService func
-func setupMocksForNewFacade() (*logger.ServiceMock, *ServiceMock, *validation.UtilMock, *event.PubServiceMock) {
-	validationUtilMock := new(validation.UtilMock)
+func setupMocksForNewFacade() (*logger.ServiceMock, *ServiceMock, *validation.HandlerMock, *event.PubServiceMock) {
+	validationUtilMock := new(validation.HandlerMock)
 	logServiceMock := new(logger.ServiceMock)
 	userService := new(ServiceMock)
 	eventPubService := new(event.PubServiceMock)

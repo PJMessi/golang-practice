@@ -14,16 +14,16 @@ import (
 )
 
 type FacadeImpl struct {
-	authService    Service
-	validationUtil validation.Util
-	logService     logger.Service
+	authService       Service
+	validationHandler validation.Handler
+	logService        logger.Service
 }
 
-func NewFacade(logService logger.Service, authService Service, validationUtil validation.Util) Facade {
+func NewFacade(logService logger.Service, authService Service, validationHandler validation.Handler) Facade {
 	return &FacadeImpl{
-		authService:    authService,
-		validationUtil: validationUtil,
-		logService:     logService,
+		authService:       authService,
+		validationHandler: validationHandler,
+		logService:        logService,
 	}
 }
 
@@ -35,7 +35,7 @@ func (f *FacadeImpl) Login(ctx context.Context, reqBytes []byte) ([]byte, error)
 		return nil, exception.NewInvalidReqFromBase(exception.Base{Message: errorcode.ReqDataMissing})
 	}
 
-	err = f.validationUtil.ValidateStruct(req)
+	err = f.validationHandler.ValidateStruct(req)
 	if err != nil {
 		var valErr validation.ValidationError
 		if errors.As(err, &valErr) {
