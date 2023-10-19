@@ -11,7 +11,6 @@ import (
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
 	"github.com/pjmessi/golang-practice/pkg/event"
-	"github.com/pjmessi/golang-practice/pkg/hash"
 	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
 	"github.com/pjmessi/golang-practice/pkg/validation"
@@ -37,8 +36,7 @@ func StartApp() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	hashUtil := hash.NewUtil()
-	passwordUtil := password.NewUtil(hashUtil)
+	passwordUtil := password.NewUtil()
 	jwtUtility, err := jwt.NewUtil(loggerUtil, appConfig)
 	if err != nil {
 		log.Fatal(err)

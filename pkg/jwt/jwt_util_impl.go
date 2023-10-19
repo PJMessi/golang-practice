@@ -11,7 +11,6 @@ import (
 )
 
 type UtilImpl struct {
-	Util
 	secret          []byte
 	jwtExpTimeInSec int64
 }

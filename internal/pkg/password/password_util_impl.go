@@ -5,17 +5,14 @@ import (
 	"regexp"
 	"unicode"
 
-	"github.com/pjmessi/golang-practice/pkg/hash"
+	"github.com/pjmessi/golang-practice/pkg/hashutil"
 )
 
 type UtilImpl struct {
-	hashUtil hash.Util
 }
 
-func NewUtil(hashUtil hash.Util) Util {
-	return &UtilImpl{
-		hashUtil: hashUtil,
-	}
+func NewUtil() Util {
+	return &UtilImpl{}
 }
 
 func (utility *UtilImpl) IsStrong(plainPw string) bool {
@@ -48,15 +45,15 @@ func (utility *UtilImpl) IsStrong(plainPw string) bool {
 }
 
 func (utility *UtilImpl) Hash(plainPw string) (string, error) {
-	hashedPw, err := utility.hashUtil.GenerateHash(plainPw)
+	hashedPw, err := hashutil.GenerateHash(plainPw)
 	if err != nil {
-		return "", fmt.Errorf("password.Hash: %w", err)
+		return "", fmt.Errorf("password.Hash(): %w", err)
 	}
 
 	return hashedPw, nil
 }
 
 func (utility *UtilImpl) IsHashCorrect(hashedPw string, plainPw string) bool {
-	isValidHash := utility.hashUtil.VerifyHash(hashedPw, plainPw)
+	isValidHash := hashutil.VerifyHash(hashedPw, plainPw)
 	return isValidHash
 }
