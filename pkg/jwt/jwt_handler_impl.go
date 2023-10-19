@@ -15,14 +15,14 @@ type HandlerImpl struct {
 	jwtExpTimeInSec int64
 }
 
-func NewHandler(loggerUtil logger.Util, appConfig *config.AppConfig) (Handler, error) {
+func NewHandler(logService logger.Service, appConfig *config.AppConfig) (Handler, error) {
 	jwtExpTimeDurationStr := appConfig.JWT_EXPIRATION_TIME
 	jwtExpTimeInSec, err := timeutil.ConvertDurationStrToSec(jwtExpTimeDurationStr)
 	if err != nil {
 		return nil, fmt.Errorf("jwt.NewHandler(): %w", err)
 	}
 
-	loggerUtil.Debug(fmt.Sprintf("jwt expiration time set to: '%s' i.e '%d' seconds", jwtExpTimeDurationStr, jwtExpTimeInSec))
+	logService.Debug(fmt.Sprintf("jwt expiration time set to: '%s' i.e '%d' seconds", jwtExpTimeDurationStr, jwtExpTimeInSec))
 
 	return &HandlerImpl{
 		secret:          strutil.ConvertToBytes(appConfig.JWT_SECRET),

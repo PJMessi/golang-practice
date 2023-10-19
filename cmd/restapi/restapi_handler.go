@@ -9,13 +9,13 @@ import (
 type RouteHandler struct {
 	authFacade auth.Facade
 	userFacade user.Facade
-	loggerUtil logger.Util
+	logService logger.Service
 }
 
-func NewRouteHandler(loggerUtil logger.Util, authFacade auth.Facade, userFacade user.Facade) *RouteHandler {
+func NewRouteHandler(logService logger.Service, authFacade auth.Facade, userFacade user.Facade) *RouteHandler {
 	return &RouteHandler{
 		authFacade: authFacade,
 		userFacade: userFacade,
-		loggerUtil: loggerUtil,
+		logService: logService,
 	}
 }

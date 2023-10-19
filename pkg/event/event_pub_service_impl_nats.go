@@ -10,14 +10,14 @@ import (
 
 type PubServiceNatsImpl struct {
 	nc         *nats.Conn
-	loggerUtil logger.Util
+	logService logger.Service
 }
 
-func NewPubService(appConfig *config.AppConfig, loggerUtil logger.Util) (PubService, error) {
+func NewPubService(appConfig *config.AppConfig, logService logger.Service) (PubService, error) {
 	url := appConfig.NATS_URL
 	if url == "" {
 		url = nats.DefaultURL
-		loggerUtil.Debug(fmt.Sprintf("NATS url is not provided, so using default url of %s", url))
+		logService.Debug(fmt.Sprintf("NATS url is not provided, so using default url of %s", url))
 	}
 
 	nc, err := nats.Connect(nats.DefaultURL)
@@ -26,7 +26,7 @@ func NewPubService(appConfig *config.AppConfig, loggerUtil logger.Util) (PubServ
 		return nil, fmt.Errorf("nats.NewPublisherService(): %w", err)
 	}
 
-	return &PubServiceNatsImpl{nc: nc, loggerUtil: loggerUtil}, nil
+	return &PubServiceNatsImpl{nc: nc, logService: logService}, nil
 }
 
 func (p *PubServiceNatsImpl) Close() error {

@@ -31,36 +31,36 @@ func StartApp() {
 	defer db.CloseConnection()
 
 	// initialize common services
-	loggerUtil := logger.NewUtil()
+	logService := logger.NewService()
 	validationUtil, err := validation.NewUtil()
 	if err != nil {
 		log.Fatal(err)
 	}
 	passwordUtil := password.NewUtil()
-	jwtHandler, err := jwt.NewHandler(loggerUtil, appConfig)
+	jwtHandler, err := jwt.NewHandler(logService, appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// initialize core services
-	userService := user.NewService(loggerUtil, db, passwordUtil)
-	authService := auth.NewService(loggerUtil, jwtHandler, db, passwordUtil)
-	eventPubService, err := event.NewPubService(appConfig, loggerUtil)
+	userService := user.NewService(logService, db, passwordUtil)
+	authService := auth.NewService(logService, jwtHandler, db, passwordUtil)
+	eventPubService, err := event.NewPubService(appConfig, logService)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// initialize facades
-	userFacade := user.NewFacade(loggerUtil, userService, validationUtil, eventPubService)
-	authFacade := auth.NewFacade(loggerUtil, authService, validationUtil)
+	userFacade := user.NewFacade(logService, userService, validationUtil, eventPubService)
+	authFacade := auth.NewFacade(logService, authService, validationUtil)
 
 	// register REST API routes
-	router := RegisterRoutes(loggerUtil, authFacade, userFacade)
+	router := RegisterRoutes(logService, authFacade, userFacade)
 
 	// start http server
 	port := appConfig.APP_PORT
-	loggerUtil.Debug(fmt.Sprintf("🚀 starting GO server on port: %s", port))
+	logService.Debug(fmt.Sprintf("🚀 starting GO server on port: %s", port))
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), router); err != nil {
-		loggerUtil.Debug(fmt.Sprintf("error while starting http server: %v", err))
+		logService.Debug(fmt.Sprintf("error while starting http server: %v", err))
 	}
 }

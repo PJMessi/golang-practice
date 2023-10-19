@@ -2,7 +2,7 @@ package logger
 
 import "context"
 
-type Util interface {
+type Service interface {
 	Debug(msg string)
 	Error(msg string)
 	DebugCtx(ctx context.Context, msg string)

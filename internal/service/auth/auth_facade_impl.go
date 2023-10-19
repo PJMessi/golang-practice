@@ -16,14 +16,14 @@ import (
 type FacadeImpl struct {
 	authService    Service
 	validationUtil validation.Util
-	loggerUtil     logger.Util
+	logService     logger.Service
 }
 
-func NewFacade(loggerUtil logger.Util, authService Service, validationUtil validation.Util) Facade {
+func NewFacade(logService logger.Service, authService Service, validationUtil validation.Util) Facade {
 	return &FacadeImpl{
 		authService:    authService,
 		validationUtil: validationUtil,
-		loggerUtil:     loggerUtil,
+		logService:     logService,
 	}
 }
 

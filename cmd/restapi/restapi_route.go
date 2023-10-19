@@ -10,9 +10,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func RegisterRoutes(loggerUtil logger.Util, authFacade auth.Facade, userFacade user.Facade) http.Handler {
+func RegisterRoutes(logService logger.Service, authFacade auth.Facade, userFacade user.Facade) http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
-	handler := NewRouteHandler(loggerUtil, authFacade, userFacade)
+	handler := NewRouteHandler(logService, authFacade, userFacade)
 
 	router.HandleFunc("/auth/login", handler.handlePanic(handler.handleLoginApi)).Methods("POST")
 	router.HandleFunc("/user/registration", handler.handlePanic(handler.handleUserRegApi)).Methods("POST")

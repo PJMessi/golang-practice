@@ -18,15 +18,15 @@ import (
 type FacadeImpl struct {
 	userService     Service
 	validationUtil  validation.Util
-	loggerUtil      logger.Util
+	logService      logger.Service
 	eventPubService event.PubService
 }
 
-func NewFacade(loggerUtil logger.Util, userService Service, validationUtil validation.Util, eventPubService event.PubService) Facade {
+func NewFacade(logService logger.Service, userService Service, validationUtil validation.Util, eventPubService event.PubService) Facade {
 	return &FacadeImpl{
 		userService:     userService,
 		validationUtil:  validationUtil,
-		loggerUtil:      loggerUtil,
+		logService:      logService,
 		eventPubService: eventPubService,
 	}
 }
@@ -78,7 +78,7 @@ func (f *FacadeImpl) genNewRegEventPayload(ctx context.Context, userId string, e
 
 	eventPayloadBytes, err := structutil.ConvertToBytes(eventPayload)
 	if err != nil {
-		f.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("error generating payload for 'event.user.new_registration' event for userId '%s' and email '%s': %s", userId, email, err))
+		f.logService.ErrorCtx(ctx, fmt.Sprintf("error generating payload for 'event.user.new_registration' event for userId '%s' and email '%s': %s", userId, email, err))
 		return nil
 	}
 
@@ -88,8 +88,8 @@ func (f *FacadeImpl) genNewRegEventPayload(ctx context.Context, userId string, e
 func (f *FacadeImpl) publishNewRegEventPayload(ctx context.Context, payload []byte, userId string, email string) {
 	err := f.eventPubService.Publish("event.user.new_registration", payload)
 	if err != nil {
-		f.loggerUtil.ErrorCtx(ctx, fmt.Sprintf("error publishing 'event.user.new_registration' event for userId '%s' and email '%s': %s", userId, email, err))
+		f.logService.ErrorCtx(ctx, fmt.Sprintf("error publishing 'event.user.new_registration' event for userId '%s' and email '%s': %s", userId, email, err))
 	} else {
-		f.loggerUtil.DebugCtx(ctx, fmt.Sprintf("published 'event.user.new_registration' event for userId '%s' and email '%s'", userId, email))
+		f.logService.DebugCtx(ctx, fmt.Sprintf("published 'event.user.new_registration' event for userId '%s' and email '%s'", userId, email))
 	}
 }

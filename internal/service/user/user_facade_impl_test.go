@@ -19,35 +19,35 @@ import (
 )
 
 // setupMocksForFacadeImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.UtilMock, *validation.UtilMock, *event.PubServiceMock) {
+func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.ServiceMock, *validation.UtilMock, *event.PubServiceMock) {
 	userService := new(ServiceMock)
 	validationUtilMock := new(validation.UtilMock)
-	loggerUtilMock := new(logger.UtilMock)
+	logServiceMock := new(logger.ServiceMock)
 	eventPubService := new(event.PubServiceMock)
 	authFacade := &FacadeImpl{
 		userService:     userService,
-		loggerUtil:      loggerUtilMock,
+		logService:      logServiceMock,
 		validationUtil:  validationUtilMock,
 		eventPubService: eventPubService,
 	}
-	return authFacade, userService, loggerUtilMock, validationUtilMock, eventPubService
+	return authFacade, userService, logServiceMock, validationUtilMock, eventPubService
 }
 
 // setupMocksForNewService returns mocked dependencies for NewService func
-func setupMocksForNewFacade() (*logger.UtilMock, *ServiceMock, *validation.UtilMock, *event.PubServiceMock) {
+func setupMocksForNewFacade() (*logger.ServiceMock, *ServiceMock, *validation.UtilMock, *event.PubServiceMock) {
 	validationUtilMock := new(validation.UtilMock)
-	loggerUtilMock := new(logger.UtilMock)
+	logServiceMock := new(logger.ServiceMock)
 	userService := new(ServiceMock)
 	eventPubService := new(event.PubServiceMock)
-	return loggerUtilMock, userService, validationUtilMock, eventPubService
+	return logServiceMock, userService, validationUtilMock, eventPubService
 }
 
 func Test_NewFacade(t *testing.T) {
 	// ARRANGE
-	loggerUtilMock, serviceMock, validatonUtilMock, eventPubServiceMock := setupMocksForNewFacade()
+	logServiceMock, serviceMock, validatonUtilMock, eventPubServiceMock := setupMocksForNewFacade()
 
 	// ACT
-	res := NewFacade(loggerUtilMock, serviceMock, validatonUtilMock, eventPubServiceMock)
+	res := NewFacade(logServiceMock, serviceMock, validatonUtilMock, eventPubServiceMock)
 
 	// ARRANGE
 	resServiceImpl := res.(*FacadeImpl)
@@ -141,7 +141,7 @@ func Test_Facade_RegisterUser_Err_Creating_User(t *testing.T) {
 
 func Test_Facade_RegisterUser_Err_Publishing_Event(t *testing.T) {
 	// ARRANGE
-	facade, service, loggerUtilMock, validationUtilMock, eventPubServiceMock := setupMocksForFacadeImplTest()
+	facade, service, logServiceMock, validationUtilMock, eventPubServiceMock := setupMocksForFacadeImplTest()
 
 	email := testutil.Fake.Internet().Email()
 	ctx := context.Background()
@@ -150,7 +150,7 @@ func Test_Facade_RegisterUser_Err_Publishing_Event(t *testing.T) {
 	user := testutil.GenMockUser(&model.User{Email: email})
 	publishErr := fmt.Errorf("Error from Publish")
 
-	loggerUtilMock.On("ErrorCtx", mock.Anything, mock.Anything)
+	logServiceMock.On("ErrorCtx", mock.Anything, mock.Anything)
 	validationUtilMock.On("ValidateStruct", regUserApiReq).Return(nil)
 	service.On("CreateUser", ctx, regUserApiReq.Email, regUserApiReq.Password).Return(user, nil)
 	eventPubServiceMock.On("Publish", "event.user.new_registration", mock.Anything).Return(publishErr)
@@ -163,12 +163,12 @@ func Test_Facade_RegisterUser_Err_Publishing_Event(t *testing.T) {
 	expectedLogStr := fmt.Sprintf("error publishing 'event.user.new_registration' event for userId '%s' and email '%s': %s", user.Id, user.Email, publishErr)
 
 	assert.Equal(t, errRes, nil)
-	loggerUtilMock.AssertCalled(t, "ErrorCtx", ctx, expectedLogStr)
+	logServiceMock.AssertCalled(t, "ErrorCtx", ctx, expectedLogStr)
 }
 
 func Test_Facade_RegisterUser_Success_Res(t *testing.T) {
 	// ARRANGE
-	facade, service, loggerUtilMock, validationUtilMock, eventPubServiceMock := setupMocksForFacadeImplTest()
+	facade, service, logServiceMock, validationUtilMock, eventPubServiceMock := setupMocksForFacadeImplTest()
 
 	email := testutil.Fake.Internet().Email()
 	ctx := context.Background()
@@ -176,7 +176,7 @@ func Test_Facade_RegisterUser_Success_Res(t *testing.T) {
 	reqBytes, _ := json.Marshal(regUserApiReq)
 	user := testutil.GenMockUser(&model.User{Email: email})
 
-	loggerUtilMock.On("DebugCtx", mock.Anything, mock.Anything)
+	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	validationUtilMock.On("ValidateStruct", regUserApiReq).Return(nil)
 	service.On("CreateUser", ctx, regUserApiReq.Email, regUserApiReq.Password).Return(user, nil)
 	eventPubServiceMock.On("Publish", "event.user.new_registration", mock.Anything).Return(nil)

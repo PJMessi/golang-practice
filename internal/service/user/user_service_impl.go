@@ -18,18 +18,18 @@ import (
 type ServiceImpl struct {
 	db           database.Db
 	passwordUtil password.Util
-	loggerUtil   logger.Util
+	logService   logger.Service
 }
 
 func NewService(
-	loggerUtil logger.Util,
+	logService logger.Service,
 	db database.Db,
 	passwordUtil password.Util,
 ) Service {
 	return &ServiceImpl{
 		db:           db,
 		passwordUtil: passwordUtil,
-		loggerUtil:   loggerUtil,
+		logService:   logService,
 	}
 }
 
@@ -64,7 +64,7 @@ func (s *ServiceImpl) CreateUser(ctx context.Context, email string, password str
 
 func (s *ServiceImpl) ensureStrongPw(ctx context.Context, password string) error {
 	if isPwStrong := s.passwordUtil.IsStrong(password); !isPwStrong {
-		s.loggerUtil.DebugCtx(ctx, "user did not provide strong password")
+		s.logService.DebugCtx(ctx, "user did not provide strong password")
 
 		return exception.NewInvalidReqFromBase(exception.Base{
 			Message: "password is not strong enough",
@@ -84,7 +84,7 @@ func (s *ServiceImpl) ensureEmailNotUsed(ctx context.Context, email string) erro
 		return nil
 	}
 
-	s.loggerUtil.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' already exists", email))
+	s.logService.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' already exists", email))
 
 	return exception.NewAlreadyExistsFromBase(exception.Base{
 		Message: fmt.Sprintf("user with the email '%s' already exists", email),

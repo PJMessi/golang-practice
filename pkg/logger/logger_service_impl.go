@@ -8,37 +8,37 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/ctxutil"
 )
 
-type UtilImpl struct {
+type ServiceImpl struct {
 }
 
-func NewUtil() Util {
-	return &UtilImpl{}
+func NewService() Service {
+	return &ServiceImpl{}
 }
 
-func (u *UtilImpl) Debug(msg string) {
+func (s *ServiceImpl) Debug(msg string) {
 	msgToPrint := fmt.Sprintf("DEBUG: %s", msg)
 	log.Println(msgToPrint)
 }
 
-func (u *UtilImpl) Error(msg string) {
+func (s *ServiceImpl) Error(msg string) {
 	msgToPrint := fmt.Sprintf("ERROR: %s", msg)
 	log.Println(msgToPrint)
 }
 
-func (u *UtilImpl) DebugCtx(ctx context.Context, msg string) {
+func (s *ServiceImpl) DebugCtx(ctx context.Context, msg string) {
 	traceId := ctxutil.GetTraceIdFromCtx(ctx)
 	if traceId == "" {
-		u.Debug(msg)
+		s.Debug(msg)
 		return
 	}
 	msgToPrint := fmt.Sprintf("DEBUG: [TraceId: %s] %s", traceId, msg)
 	log.Println(msgToPrint)
 }
 
-func (u *UtilImpl) ErrorCtx(ctx context.Context, msg string) {
+func (s *ServiceImpl) ErrorCtx(ctx context.Context, msg string) {
 	traceId := ctxutil.GetTraceIdFromCtx(ctx)
 	if traceId == "" {
-		u.Error(msg)
+		s.Error(msg)
 		return
 	}
 	msgToPrint := fmt.Sprintf("ERROR: [TraceId: %s] %s", traceId, msg)
