@@ -59,18 +59,18 @@ func (r *RawDbImpl) CheckHealth() error {
 func (r *RawDbImpl) SaveUser(ctx context.Context, user *model.User) error {
 	stmt, err := r.db.Prepare("INSERT INTO users (id, email, password, first_name, last_name, created_at, updated_at) VALUE (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		return fmt.Errorf("database.SaveUser: %w", err)
+		return fmt.Errorf("database.SaveUser(): %w", err)
 	}
 
 	defer func() {
 		if cerr := stmt.Close(); cerr != nil && err == nil {
-			err = fmt.Errorf("database.SaveUser: %w", cerr)
+			err = fmt.Errorf("database.SaveUser(): %w", cerr)
 		}
 	}()
 
 	_, err = stmt.Exec(user.Id, user.Email, user.Password, user.FirstName, user.LastName, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
-		return fmt.Errorf("database.SaveUser: %w", err)
+		return fmt.Errorf("database.SaveUser(): %w", err)
 	}
 
 	return nil

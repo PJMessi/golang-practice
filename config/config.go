@@ -19,8 +19,8 @@ type AppConfig struct {
 	NATS_URL            string
 }
 
-func GetAppConfig() *AppConfig {
-	envPath := getEnvFilePath()
+func GetAppConfig(env string) *AppConfig {
+	envPath := getEnvFilePath(env)
 	if doesEnvFileExist(envPath) {
 		loadEnvFile(envPath)
 	}
@@ -43,8 +43,16 @@ func doesEnvFileExist(envFilePath string) bool {
 	return err == nil
 }
 
-func getEnvFilePath() string {
-	return ".env"
+func getEnvFilePath(env string) string {
+	if env == "" {
+		return ".env"
+	}
+
+	if env == "test" {
+		return "../.env"
+	}
+
+	return ""
 }
 
 func loadEnvFile(envFilePath string) {

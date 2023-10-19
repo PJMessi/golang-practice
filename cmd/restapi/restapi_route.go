@@ -15,7 +15,7 @@ func RegisterRoutes(logService logger.Service, authFacade auth.Facade, userFacad
 	handler := NewRouteHandler(logService, authFacade, userFacade)
 
 	router.HandleFunc("/auth/login", handler.handlePanic(handler.handleLoginApi)).Methods("POST")
-	router.HandleFunc("/user/registration", handler.handlePanic(handler.handleUserRegApi)).Methods("POST")
+	router.HandleFunc("/users/registration", handler.handlePanic(handler.handleUserRegApi)).Methods("POST")
 
 	return router
 }

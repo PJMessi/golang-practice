@@ -64,7 +64,7 @@ func (s *ServiceImpl) ensureStrongPw(ctx context.Context, password string) error
 		s.logService.DebugCtx(ctx, "user did not provide strong password")
 
 		return exception.NewInvalidReqFromBase(exception.Base{
-			Message: "password is not strong enough",
+			Details: &map[string]string{"password": "password not strong"},
 		})
 	}
 

@@ -117,7 +117,7 @@ func Test_CreateUser_Weak_Password(t *testing.T) {
 	expectedLogStr := "user did not provide strong password"
 	expectedUserRes := model.User{}
 	expectedErrRes := exception.NewInvalidReqFromBase(exception.Base{
-		Message: "password is not strong enough",
+		Details: &map[string]string{"password": "password not strong"},
 	})
 
 	assert.Equal(t, expectedUserRes, userRes)

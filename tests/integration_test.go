@@ -1,12 +1,16 @@
-package restapi
+package tests
 
 import (
-	"fmt"
 	"log"
-	"net/http"
+	"net/http/httptest"
 
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/pjmessi/golang-practice/cmd/restapi"
 	"github.com/pjmessi/golang-practice/config"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
 	"github.com/pjmessi/golang-practice/pkg/event"
@@ -15,11 +19,18 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/validation"
 )
 
-func StartApp() {
-	appConfig := config.GetAppConfig("")
+var testServer *httptest.Server
+var db database.Db
+var appConfig *config.AppConfig
+var testDbCon *sql.DB
+
+func setupIntegrationTest() {
+	appConfig = config.GetAppConfig("test")
+
+	var err error
 
 	// initialize database connection
-	db, err := database.NewDb(appConfig)
+	db, err = database.NewDb(appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,7 +38,6 @@ func StartApp() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	defer db.CloseConnection()
 
 	// initialize common services
 	logService := logger.NewService()
@@ -53,12 +63,24 @@ func StartApp() {
 	authFacade := auth.NewFacade(logService, authService, validationHandler)
 
 	// register REST API routes
-	router := RegisterRoutes(logService, authFacade, userFacade)
+	router := restapi.RegisterRoutes(logService, authFacade, userFacade)
 
 	// start http server
-	port := appConfig.APP_PORT
-	logService.Debug(fmt.Sprintf("🚀 starting GO server on port: %s", port))
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), router); err != nil {
-		logService.Debug(fmt.Sprintf("error while starting http server: %v", err))
+	testServer = httptest.NewServer(router)
+
+	// initialize database connection for testing
+	testDbCon, err = testutil.GetTestDbCon(appConfig)
+	if err != nil {
+		log.Fatal(err)
 	}
+}
+
+func teardownIntegrationTest() {
+	testDbCon.Exec("DELETE FROM users;")
+
+	// Clean up resources and shut down the test server and test database
+	testDbCon.Close()
+	db.CloseConnection()
+	testServer.Close()
+	// Additional cleanup as needed
 }

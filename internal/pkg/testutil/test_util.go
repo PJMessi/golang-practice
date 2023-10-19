@@ -1,9 +1,13 @@
 package testutil
 
 import (
+	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jaswdr/faker"
+	"github.com/pjmessi/golang-practice/config"
 	"github.com/pjmessi/golang-practice/internal/model"
 )
 
@@ -13,6 +17,7 @@ func GenMockUser(partialData *model.User) model.User {
 	currentTime := time.Now()
 
 	id := Fake.UUID().V4()
+	email := strings.ToLower(Fake.Internet().Email())
 	firstName := Fake.Person().FirstName()
 	lastName := Fake.Person().LastName()
 	password := Fake.Internet().Password()
@@ -22,6 +27,9 @@ func GenMockUser(partialData *model.User) model.User {
 	if partialData != nil {
 		if partialData.Id != "" {
 			id = partialData.Id
+		}
+		if partialData.Email != "" {
+			email = partialData.Email
 		}
 		if partialData.FirstName != nil && *partialData.FirstName != "" {
 			firstName = *partialData.FirstName
@@ -42,6 +50,7 @@ func GenMockUser(partialData *model.User) model.User {
 
 	return model.User{
 		Id:        id,
+		Email:     email,
 		FirstName: &firstName,
 		Password:  &password,
 		LastName:  &lastName,
@@ -88,4 +97,17 @@ func GenRegUserApiReq(partialData *model.UserRegApiReq) model.UserRegApiReq {
 		Email:    email,
 		Password: password,
 	}
+}
+
+func GetTestDbCon(appConf *config.AppConfig) (*sql.DB, error) {
+	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", appConf.DB_USER, appConf.DB_PASSWORD, appConf.DB_HOST, appConf.DB_PORT, appConf.DB_DATABASE)
+	db, err := sql.Open("mysql", dns)
+	if err != nil {
+		return nil, fmt.Errorf("testutil.GetTestDbCon(): %w", err)
+	}
+
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+	return db, nil
 }

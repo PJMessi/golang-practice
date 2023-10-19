@@ -100,9 +100,11 @@ func (rh *RouteHandler) writeErrRes(ctx context.Context, w http.ResponseWriter, 
 
 func (rh *RouteHandler) convertDetailsKeyToCamelcase(validationErr *exception.InvalidReq) {
 	camelCaseDetails := map[string]string{}
-	for key, val := range *validationErr.Details {
-		camelcaseKey := strutil.PascalCaseToCamelCase(key)
-		camelCaseDetails[camelcaseKey] = val
+	if validationErr.Details != nil {
+		for key, val := range *validationErr.Details {
+			camelcaseKey := strutil.PascalCaseToCamelCase(key)
+			camelCaseDetails[camelcaseKey] = val
+		}
+		*validationErr.Details = camelCaseDetails
 	}
-	*validationErr.Details = camelCaseDetails
 }
