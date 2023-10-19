@@ -3,50 +3,48 @@ package auth
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
-	"github.com/pjmessi/golang-practice/internal/pkg/password"
 	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // setupMocksForServiceImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMock, *password.UtilMock, *jwt.UtilMock, *logger.ServiceMock) {
+func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMock, *jwt.UtilMock, *logger.ServiceMock) {
 	dbMock := new(database.DbMock)
-	passwordUtil := new(password.UtilMock)
 	jwtUtilMock := new(jwt.UtilMock)
 	logServiceMock := new(logger.ServiceMock)
 	service := &ServiceImpl{
-		db:           dbMock,
-		passwordUtil: passwordUtil,
-		jwtHandler:   jwtUtilMock,
-		logService:   logServiceMock,
+		db:         dbMock,
+		jwtHandler: jwtUtilMock,
+		logService: logServiceMock,
 	}
-	return service, dbMock, passwordUtil, jwtUtilMock, logServiceMock
+	return service, dbMock, jwtUtilMock, logServiceMock
 }
 
 // setupMocksForNewService returns mocked dependencies for NewService func
-func setupMocksForNewService() (*database.DbMock, *password.UtilMock, *jwt.UtilMock, *logger.ServiceMock) {
+func setupMocksForNewService() (*database.DbMock, *jwt.UtilMock, *logger.ServiceMock) {
 	dbMock := new(database.DbMock)
-	passwordUtilMock := new(password.UtilMock)
 	jwtUtilMock := new(jwt.UtilMock)
 	logServiceMock := new(logger.ServiceMock)
-	return dbMock, passwordUtilMock, jwtUtilMock, logServiceMock
+	return dbMock, jwtUtilMock, logServiceMock
 }
 
 func Test_NewService(t *testing.T) {
 	// ARRANGE
-	dbMock, passwordUtilMock, jwtUtilMock, logServiceMock := setupMocksForNewService()
+	dbMock, jwtUtilMock, logServiceMock := setupMocksForNewService()
 
 	// ACT
-	res := NewService(logServiceMock, jwtUtilMock, dbMock, passwordUtilMock)
+	res := NewService(logServiceMock, jwtUtilMock, dbMock)
 
 	// ARRANGE
 	resServiceImpl := res.(*ServiceImpl)
@@ -57,7 +55,7 @@ func Test_NewService(t *testing.T) {
 
 func Test_Service_Login_User_Doesnt_exist(t *testing.T) {
 	// ARRANGE
-	service, dbMock, _, _, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, _, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
@@ -83,7 +81,7 @@ func Test_Service_Login_User_Doesnt_exist(t *testing.T) {
 
 func Test_Service_Login_Err_Getting_User_By_Email(t *testing.T) {
 	// ARRANGE
-	service, dbMock, _, _, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, _, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
@@ -108,7 +106,7 @@ func Test_Service_Login_Err_Getting_User_By_Email(t *testing.T) {
 
 func Test_Service_Login_User_Hasnt_Setup_Pw(t *testing.T) {
 	// ARRANGE
-	service, dbMock, _, _, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, _, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
@@ -134,7 +132,7 @@ func Test_Service_Login_User_Hasnt_Setup_Pw(t *testing.T) {
 
 func Test_Service_Login_Incorrect_Pw(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, _, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, _, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
@@ -143,7 +141,6 @@ func Test_Service_Login_Incorrect_Pw(t *testing.T) {
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
-	passwordUtilMock.On("IsHashCorrect", *user.Password, password).Return(false)
 
 	// ACT
 	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
@@ -160,17 +157,18 @@ func Test_Service_Login_Incorrect_Pw(t *testing.T) {
 
 func Test_Service_Login_Success_Res(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, jwtUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, jwtUtilMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
-	email := "PJMESSI25@icloud.com" // testutil.Fake.Internet().Email()
-	password := testutil.Fake.Internet().Password()
-	user := testutil.GenMockUser(&model.User{Email: email})
+	email := strings.ToUpper(testutil.Fake.Internet().Email())
+	password := "Password123!"
+	hashedPasswordByte, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword := string(hashedPasswordByte)
+	user := testutil.GenMockUser(&model.User{Email: email, Password: &hashedPassword})
 	jwtStr := testutil.Fake.RandomStringWithLength(100)
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
-	passwordUtilMock.On("IsHashCorrect", *user.Password, password).Return(true)
 	jwtUtilMock.On("Generate", user.Id, user.Email).Return(jwtStr, nil)
 
 	// ACT
@@ -187,17 +185,18 @@ func Test_Service_Login_Success_Res(t *testing.T) {
 
 func Test_Service_Login_Err_Generating_Jwt(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, jwtUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, jwtUtilMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
-	password := testutil.Fake.Internet().Password()
-	user := testutil.GenMockUser(&model.User{Email: email})
+	password := "Password123!"
+	hashedPasswordByte, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword := string(hashedPasswordByte)
+	user := testutil.GenMockUser(&model.User{Email: email, Password: &hashedPassword})
 	generateErr := fmt.Errorf("error from Generate")
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
-	passwordUtilMock.On("IsHashCorrect", *user.Password, password).Return(true)
 	jwtUtilMock.On("Generate", user.Id, user.Email).Return("", generateErr)
 
 	// ACT

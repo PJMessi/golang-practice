@@ -7,7 +7,6 @@ import (
 
 	"github.com/pjmessi/golang-practice/config"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
-	"github.com/pjmessi/golang-practice/internal/pkg/password"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
 	"github.com/pjmessi/golang-practice/pkg/event"
@@ -36,15 +35,14 @@ func StartApp() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	passwordUtil := password.NewUtil()
 	jwtHandler, err := jwt.NewHandler(logService, appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// initialize core services
-	userService := user.NewService(logService, db, passwordUtil)
-	authService := auth.NewService(logService, jwtHandler, db, passwordUtil)
+	userService := user.NewService(logService, db)
+	authService := auth.NewService(logService, jwtHandler, db)
 	eventPubService, err := event.NewPubService(appConfig, logService)
 	if err != nil {
 		log.Fatal(err)

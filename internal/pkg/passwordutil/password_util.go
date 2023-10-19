@@ -1,4 +1,4 @@
-package password
+package passwordutil
 
 import (
 	"fmt"
@@ -8,14 +8,7 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/hashutil"
 )
 
-type UtilImpl struct {
-}
-
-func NewUtil() Util {
-	return &UtilImpl{}
-}
-
-func (utility *UtilImpl) IsStrong(plainPw string) bool {
+func IsStrong(plainPw string) bool {
 	// password should be at least 8 characters long and must have at least 1 lowercase character, 1 uppercase character,
 	// 1 digit and 1 special character (!@#$%^&*()_+{})
 
@@ -44,7 +37,7 @@ func (utility *UtilImpl) IsStrong(plainPw string) bool {
 	return hasLower && hasUpper && hasDigit && hasSpecial
 }
 
-func (utility *UtilImpl) Hash(plainPw string) (string, error) {
+func Hash(plainPw string) (string, error) {
 	hashedPw, err := hashutil.Generate(plainPw)
 	if err != nil {
 		return "", fmt.Errorf("password.Hash(): %w", err)
@@ -53,7 +46,7 @@ func (utility *UtilImpl) Hash(plainPw string) (string, error) {
 	return hashedPw, nil
 }
 
-func (utility *UtilImpl) IsHashCorrect(hashedPw string, plainPw string) bool {
+func IsHashCorrect(hashedPw string, plainPw string) bool {
 	isValidHash := hashutil.Verify(hashedPw, plainPw)
 	return isValidHash
 }

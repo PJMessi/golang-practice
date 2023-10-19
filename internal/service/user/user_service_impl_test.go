@@ -10,7 +10,6 @@ import (
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
-	"github.com/pjmessi/golang-practice/internal/pkg/password"
 	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
@@ -19,32 +18,29 @@ import (
 )
 
 // setupMocksForServiceImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMock, *password.UtilMock, *logger.ServiceMock) {
+func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMock, *logger.ServiceMock) {
 	dbMock := new(database.DbMock)
-	passwordUtil := new(password.UtilMock)
 	logServiceMock := new(logger.ServiceMock)
 	service := &ServiceImpl{
-		db:           dbMock,
-		passwordUtil: passwordUtil,
-		logService:   logServiceMock,
+		db:         dbMock,
+		logService: logServiceMock,
 	}
-	return service, dbMock, passwordUtil, logServiceMock
+	return service, dbMock, logServiceMock
 }
 
 // setupMocksForNewService returns mocked dependencies for NewService func
-func setupMocksForNewService() (*database.DbMock, *password.UtilMock, *logger.ServiceMock) {
+func setupMocksForNewService() (*database.DbMock, *logger.ServiceMock) {
 	dbMock := new(database.DbMock)
 	logServiceMock := new(logger.ServiceMock)
-	passwordUtilMock := new(password.UtilMock)
-	return dbMock, passwordUtilMock, logServiceMock
+	return dbMock, logServiceMock
 }
 
 func Test_NewService(t *testing.T) {
 	// ARRANGE
-	dbMock, passwordUtilMock, logServiceMock := setupMocksForNewService()
+	dbMock, logServiceMock := setupMocksForNewService()
 
 	// ACT
-	res := NewService(logServiceMock, dbMock, passwordUtilMock)
+	res := NewService(logServiceMock, dbMock)
 
 	// ARRANGE
 	resServiceImpl := res.(*ServiceImpl)
@@ -55,14 +51,13 @@ func Test_NewService(t *testing.T) {
 
 func Test_CreateUser_Email_Already_Taken(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
-	password := testutil.Fake.Internet().Password()
+	password := "Password123!"
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
-	passwordUtilMock.On("IsStrong", password).Return(true)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(true, nil)
 
 	// ACT
@@ -83,15 +78,14 @@ func Test_CreateUser_Email_Already_Taken(t *testing.T) {
 
 func Test_CreateUser_Error_Checking_If_Email_Taken(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
-	password := testutil.Fake.Internet().Password()
+	password := "Password123!"
 	errIsUserEmailTaken := fmt.Errorf("error from IsUserEmailTaken")
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
-	passwordUtilMock.On("IsStrong", password).Return(true)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, errIsUserEmailTaken)
 
 	// ACT
@@ -107,15 +101,14 @@ func Test_CreateUser_Error_Checking_If_Email_Taken(t *testing.T) {
 
 func Test_CreateUser_Weak_Password(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
-	password := "password"
+	password := "weakpw"
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
-	passwordUtilMock.On("IsStrong", password).Return(false)
 
 	// ACT
 	userRes, errRes := service.CreateUser(ctx, email, password)
@@ -132,44 +125,16 @@ func Test_CreateUser_Weak_Password(t *testing.T) {
 	logServiceMock.AssertCalled(t, "DebugCtx", ctx, expectedLogStr)
 }
 
-func Test_CreateUser_Error_Hashing_Password(t *testing.T) {
-	// ARRANGE
-	service, dbMock, passwordUtilMock, logServiceMock := setupMocksForServiceImplTest()
-
-	ctx := context.Background()
-	email := testutil.Fake.Internet().Email()
-	password := "password"
-	errHash := fmt.Errorf("error from Hash")
-
-	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
-	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
-	passwordUtilMock.On("IsStrong", password).Return(true)
-	passwordUtilMock.On("Hash", password).Return("", errHash)
-
-	// ACT
-	userRes, errRes := service.CreateUser(ctx, email, password)
-
-	// ASSERT
-	expectedUserRes := model.User{}
-	expectedErrRes := errHash
-
-	assert.Equal(t, expectedUserRes, userRes)
-	assert.Equal(t, expectedErrRes, errRes)
-}
-
 func Test_CreateUser_Should_Save_User_In_Db(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
-	password := "password"
-	passwordHash := testutil.Fake.RandomStringWithLength(100)
+	password := "Password123!"
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
-	passwordUtilMock.On("IsStrong", password).Return(true)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
-	passwordUtilMock.On("Hash", password).Return(passwordHash, nil)
 	dbMock.On("SaveUser", ctx, mock.Anything).Return(nil)
 
 	// ACT
@@ -178,7 +143,7 @@ func Test_CreateUser_Should_Save_User_In_Db(t *testing.T) {
 	// ASSERT
 	dbMock.AssertCalled(t, "SaveUser", ctx, mock.MatchedBy(func(user *model.User) bool {
 		return user.Email == strings.ToLower(email) &&
-			*user.Password == passwordHash &&
+			*user.Password != password && // should be hashed password
 			assert.WithinDuration(t, time.Now(), user.CreatedAt, time.Second) &&
 			user.FirstName == nil &&
 			user.LastName == nil &&
@@ -188,18 +153,15 @@ func Test_CreateUser_Should_Save_User_In_Db(t *testing.T) {
 
 func Test_CreateUser_Error_Saving_User_In_Db(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
-	password := "password"
-	passwordHash := testutil.Fake.RandomStringWithLength(100)
+	password := "Password123!"
 	errCreateUser := fmt.Errorf("error from CreateUser")
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
-	passwordUtilMock.On("IsStrong", password).Return(true)
-	passwordUtilMock.On("Hash", password).Return(passwordHash, nil)
 	dbMock.On("SaveUser", ctx, mock.Anything).Return(errCreateUser)
 
 	// ACT
@@ -215,17 +177,14 @@ func Test_CreateUser_Error_Saving_User_In_Db(t *testing.T) {
 
 func Test_CreateUser_Success_Res(t *testing.T) {
 	// ARRANGE
-	service, dbMock, passwordUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
-	password := "password"
-	passwordHash := testutil.Fake.RandomStringWithLength(100)
+	password := "Password123!"
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("IsUserEmailTaken", ctx, email).Return(false, nil)
-	passwordUtilMock.On("IsStrong", password).Return(true)
-	passwordUtilMock.On("Hash", password).Return(passwordHash, nil)
 	dbMock.On("SaveUser", ctx, mock.Anything).Return(nil)
 
 	// ACT
@@ -233,7 +192,7 @@ func Test_CreateUser_Success_Res(t *testing.T) {
 
 	// ASSERT
 	assert.Equal(t, email, userRes.Email)
-	assert.Equal(t, &passwordHash, userRes.Password)
+	assert.NotEqual(t, &password, userRes.Password) // password should be hashed
 	assert.WithinDuration(t, time.Now(), userRes.CreatedAt, time.Second)
 	assert.Nil(t, userRes.UpdatedAt)
 	assert.Nil(t, userRes.FirstName)

@@ -24,13 +24,13 @@ func GenMockUser(partialData *model.User) model.User {
 			id = partialData.Id
 		}
 		if partialData.FirstName != nil && *partialData.FirstName != "" {
-			id = partialData.Id
+			firstName = *partialData.FirstName
 		}
 		if partialData.LastName != nil && *partialData.LastName != "" {
-			id = partialData.Id
+			lastName = *partialData.LastName
 		}
 		if partialData.Password != nil && *partialData.Password != "" {
-			id = partialData.Id
+			password = *partialData.Password
 		}
 		if (partialData.CreatedAt == time.Time{}) {
 			createdAt = partialData.CreatedAt
