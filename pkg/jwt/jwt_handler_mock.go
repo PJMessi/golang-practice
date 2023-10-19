@@ -6,7 +6,7 @@ type UtilMock struct {
 	mock.Mock
 }
 
-func NewUtilMock() Util {
+func NewUtilMock() Handler {
 	return &UtilMock{}
 }
 

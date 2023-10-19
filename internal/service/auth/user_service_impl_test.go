@@ -26,7 +26,7 @@ func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMock, *password.U
 	service := &ServiceImpl{
 		db:           dbMock,
 		passwordUtil: passwordUtil,
-		jwtUtil:      jwtUtilMock,
+		jwtHandler:   jwtUtilMock,
 		loggerUtil:   loggerUtilMock,
 	}
 	return service, dbMock, passwordUtil, jwtUtilMock, loggerUtilMock

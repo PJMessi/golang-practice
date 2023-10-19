@@ -16,15 +16,15 @@ import (
 type ServiceImpl struct {
 	Service
 	db           database.Db
-	jwtUtil      jwt.Util
+	jwtHandler   jwt.Handler
 	loggerUtil   logger.Util
 	passwordUtil password.Util
 }
 
-func NewService(loggerUtil logger.Util, jwtUtil jwt.Util, db database.Db, passwordUtil password.Util) Service {
+func NewService(loggerUtil logger.Util, jwtHandler jwt.Handler, db database.Db, passwordUtil password.Util) Service {
 	return &ServiceImpl{
 		db:           db,
-		jwtUtil:      jwtUtil,
+		jwtHandler:   jwtHandler,
 		loggerUtil:   loggerUtil,
 		passwordUtil: passwordUtil,
 	}
@@ -52,7 +52,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 		return model.User{}, "", exception.NewUnauthenticated()
 	}
 
-	jwtString, err := s.jwtUtil.Generate(user.Id, user.Email)
+	jwtString, err := s.jwtHandler.Generate(user.Id, user.Email)
 	if err != nil {
 		return model.User{}, "", err
 	}

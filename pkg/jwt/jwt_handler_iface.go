@@ -1,5 +1,5 @@
 package jwt
 
-type Util interface {
+type Handler interface {
 	Generate(userId string, userEmail string) (jwtString string, err error)
 }

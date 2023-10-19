@@ -30,21 +30,21 @@ func StartApp() {
 	}
 	defer db.CloseConnection()
 
-	// initialize utilities
+	// initialize common services
 	loggerUtil := logger.NewUtil()
 	validationUtil, err := validation.NewUtil()
 	if err != nil {
 		log.Fatal(err)
 	}
 	passwordUtil := password.NewUtil()
-	jwtUtility, err := jwt.NewUtil(loggerUtil, appConfig)
+	jwtHandler, err := jwt.NewHandler(loggerUtil, appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// initialize services
+	// initialize core services
 	userService := user.NewService(loggerUtil, db, passwordUtil)
-	authService := auth.NewService(loggerUtil, jwtUtility, db, passwordUtil)
+	authService := auth.NewService(loggerUtil, jwtHandler, db, passwordUtil)
 	eventPubService, err := event.NewPubService(appConfig, loggerUtil)
 	if err != nil {
 		log.Fatal(err)
