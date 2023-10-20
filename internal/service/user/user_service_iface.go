@@ -8,4 +8,5 @@ import (
 
 type Service interface {
 	CreateUser(ctx context.Context, email string, password string) (model.User, error)
+	GetProfile(ctx context.Context, userId string) (model.User, error)
 }

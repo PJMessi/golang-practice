@@ -15,3 +15,8 @@ func (s *ServiceMock) CreateUser(ctx context.Context, email string, password str
 	args := s.Called(ctx, email, password)
 	return args.Get(0).(model.User), args.Error(1)
 }
+
+func (s *ServiceMock) GetProfile(ctx context.Context, userId string) (model.User, error) {
+	args := s.Called(ctx, userId)
+	return args.Get(0).(model.User), args.Error(1)
+}

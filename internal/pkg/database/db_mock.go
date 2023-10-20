@@ -31,6 +31,11 @@ func (r *DbMock) GetUserByEmail(ctx context.Context, email string) (bool, model.
 	return args.Bool(0), args.Get(1).(model.User), args.Error(2)
 }
 
+func (r *DbMock) GetUserById(ctx context.Context, userId string) (bool, model.User, error) {
+	args := r.Called(ctx, userId)
+	return args.Bool(0), args.Get(1).(model.User), args.Error(2)
+}
+
 func (r *DbMock) CloseConnection() {
 	r.Called()
 }

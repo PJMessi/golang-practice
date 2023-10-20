@@ -7,6 +7,7 @@ import (
 	"github.com/pjmessi/golang-practice/internal/dto"
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
+	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
 	"github.com/pjmessi/golang-practice/pkg/structutil"
@@ -58,4 +59,8 @@ func (f *FacadeImpl) Login(ctx context.Context, reqBytes []byte) ([]byte, error)
 	}
 
 	return structutil.ConvertToBytes(res)
+}
+
+func (f *FacadeImpl) VerifyJwt(ctx context.Context, jwtStr string) (jwt.JwtPayload, error) {
+	return f.authService.VerifyJwt(ctx, jwtStr)
 }

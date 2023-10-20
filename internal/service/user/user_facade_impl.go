@@ -8,6 +8,7 @@ import (
 	"github.com/pjmessi/golang-practice/internal/dto"
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
+	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/event"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
@@ -92,4 +93,21 @@ func (f *FacadeImpl) publishNewRegEventPayload(ctx context.Context, payload []by
 	} else {
 		f.logService.DebugCtx(ctx, fmt.Sprintf("published 'event.user.new_registration' event for userId '%s' and email '%s'", userId, email))
 	}
+}
+
+func (f *FacadeImpl) GetProfile(ctx context.Context, reqBytes []byte, jwtPayload jwt.JwtPayload) ([]byte, error) {
+	user, err := f.userService.GetProfile(ctx, jwtPayload.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	getProfileRes := model.GetProfileApiRes{}
+	getProfileRes.User = dto.UserToUserRes(&user)
+
+	getProfileResBytes, err := structutil.ConvertToBytes(getProfileRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return getProfileResBytes, nil
 }

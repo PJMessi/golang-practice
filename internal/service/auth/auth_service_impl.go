@@ -69,7 +69,7 @@ func (s *ServiceImpl) VerifyJwt(ctx context.Context, jwtStr string) (jwt.JwtPayl
 	}
 
 	if !isValid {
-		return jwt.JwtPayload{}, exception.Unauthenticated{}
+		return jwt.JwtPayload{}, exception.NewUnauthenticated()
 	}
 
 	return jwtPayload, nil

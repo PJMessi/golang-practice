@@ -8,3 +8,7 @@ type UserRegApiReq struct {
 type UserRegApiRes struct {
 	User UserRes `json:"user"`
 }
+
+type GetProfileApiRes struct {
+	User UserRes `json:"user"`
+}

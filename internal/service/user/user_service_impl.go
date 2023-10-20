@@ -102,3 +102,16 @@ func (s *ServiceImpl) createUser(email string, hashedPw string) (model.User, err
 		CreatedAt: timeutil.GetCurrentTime(),
 	}, nil
 }
+
+func (s *ServiceImpl) GetProfile(ctx context.Context, userId string) (model.User, error) {
+	exists, user, err := s.db.GetUserById(ctx, userId)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if !exists {
+		return model.User{}, fmt.Errorf("user with id '%s' does not exist", userId)
+	}
+
+	return user, nil
+}

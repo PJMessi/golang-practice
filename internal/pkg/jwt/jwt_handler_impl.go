@@ -54,6 +54,10 @@ func (h *HandlerImpl) createClaims(payload JwtPayload) jwtgo.MapClaims {
 }
 
 func (h *HandlerImpl) Verify(jwtStr string) (valid bool, payload JwtPayload, err error) {
+	if jwtStr == "" {
+		return false, JwtPayload{}, nil
+	}
+
 	token, err := jwtgo.Parse(jwtStr, func(token *jwtgo.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwtgo.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("invalid signing method")
@@ -62,7 +66,7 @@ func (h *HandlerImpl) Verify(jwtStr string) (valid bool, payload JwtPayload, err
 	})
 
 	if err != nil {
-		return false, JwtPayload{}, err
+		return false, JwtPayload{}, fmt.Errorf("jwt.handlerImpl.Verify(): %w", err)
 	}
 
 	if token.Valid {
@@ -79,6 +83,6 @@ func (h *HandlerImpl) Verify(jwtStr string) (valid bool, payload JwtPayload, err
 
 		return true, JwtPayload{UserId: userId, UserEmail: userEmail}, nil
 	} else {
-		return false, JwtPayload{}, fmt.Errorf("jwt.HandlerImpl.Verify(): Token is not valid")
+		return false, JwtPayload{}, nil
 	}
 }

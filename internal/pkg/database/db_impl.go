@@ -99,7 +99,7 @@ func (r *RawDbImpl) IsUserEmailTaken(ctx context.Context, email string) (bool, e
 func (r *RawDbImpl) GetUserByEmail(ctx context.Context, email string) (bool, model.User, error) {
 	rows, err := r.db.Query("SELECT * FROM users WHERE email = ?;", email)
 	if err != nil {
-		return false, model.User{}, fmt.Errorf("database.GetUserByEmail: %w", err)
+		return false, model.User{}, fmt.Errorf("database.GetUserByEmail(): %w", err)
 	}
 	defer rows.Close()
 
@@ -107,7 +107,7 @@ func (r *RawDbImpl) GetUserByEmail(ctx context.Context, email string) (bool, mod
 		var user model.User
 		err := rows.Scan(&user.Id, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.CreatedAt, &user.UpdatedAt)
 		if err != nil {
-			return false, model.User{}, fmt.Errorf("database.GetUserByEmail: %w", err)
+			return false, model.User{}, fmt.Errorf("database.GetUserByEmail(): %w", err)
 		}
 		return true, user, nil
 	} else {
@@ -117,4 +117,23 @@ func (r *RawDbImpl) GetUserByEmail(ctx context.Context, email string) (bool, mod
 
 func (r *RawDbImpl) CloseConnection() {
 	r.db.Close()
+}
+
+func (r *RawDbImpl) GetUserById(ctx context.Context, userId string) (exists bool, user model.User, err error) {
+	rows, err := r.db.Query("SELECT * FROM users WHERE id = ?;", userId)
+	if err != nil {
+		return false, model.User{}, fmt.Errorf("database.GetUserById(): %w", err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		var user model.User
+		err := rows.Scan(&user.Id, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.CreatedAt, &user.UpdatedAt)
+		if err != nil {
+			return false, model.User{}, fmt.Errorf("database.GetUserById(): %w", err)
+		}
+		return true, user, nil
+	} else {
+		return false, model.User{}, nil
+	}
 }
