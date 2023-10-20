@@ -12,16 +12,17 @@ import (
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func TestIntegrationRegisterUserWithWeakPassword(t *testing.T) {
+func TestIntegrationLoginWithUnregisteredEmail(t *testing.T) {
 	// ARRANGE
 	setupIntegrationTest()
 	defer teardownIntegrationTest()
 
-	url := fmt.Sprintf("%s/users/registration", testServer.URL)
+	url := fmt.Sprintf("%s/auth/login", testServer.URL)
 	email := testutil.Fake.Internet().Email()
-	password := "password"
+	password := testutil.Fake.Internet().Password()
 
 	// ACT
 	reqBody := []byte(fmt.Sprintf(`{"email": "%s","password": "%s"}`, email, password))
@@ -29,22 +30,22 @@ func TestIntegrationRegisterUserWithWeakPassword(t *testing.T) {
 
 	// ASSERT
 	responseBody, _ := io.ReadAll(resp.Body)
-	expectedResponseBody := `{"type":"REQUEST_DATA.INVALID","message":"invalid request data","details":{"password":"password not strong"}}`
-	assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode, "should return 422 status code")
+	expectedResponseBody := `{"type":"UNAUTHENTICATED","message":"invalid credentials","details":null}`
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, "should return 401 status code")
 	assert.Equal(t, expectedResponseBody, string(responseBody), "should return error details in the response body")
 }
 
-func TestIntegrationRegisterUserWithUsedEmail(t *testing.T) {
+func TestIntegrationLoginWithIncorrectPassword(t *testing.T) {
 	// ARRANGE
 	setupIntegrationTest()
 	defer teardownIntegrationTest()
 
 	user := testutil.GenMockUser(nil)
-	url := fmt.Sprintf("%s/users/registration", testServer.URL)
+	url := fmt.Sprintf("%s/auth/login", testServer.URL)
 	email := user.Email
-	password := "Password123!"
+	password := testutil.Fake.Internet().Password()
 
-	// adding user with the email in the database
+	// adding user with the email in the database with random password hash
 	smt, _ := testDbCon.Prepare("INSERT INTO users (id, email, password, first_name, last_name, created_at, updated_at) VALUE (?, ?, ?, ?, ?, ?, ?)")
 	smt.Exec(user.Id, user.Email, user.Password, user.FirstName, user.LastName, user.CreatedAt, user.UpdatedAt)
 	smt.Close()
@@ -55,20 +56,27 @@ func TestIntegrationRegisterUserWithUsedEmail(t *testing.T) {
 
 	// ASSERT
 	responseBody, _ := io.ReadAll(resp.Body)
-	expectedResponseBody := fmt.Sprintf(`{"type":"USER.ALREADY_EXISTS","message":"user with the email '%s' already exists","details":null}`, email)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "should return 400 status code")
-	assert.Equal(t, expectedResponseBody, string(responseBody), "should return the error details in the response body")
+	expectedResponseBody := `{"type":"UNAUTHENTICATED","message":"invalid credentials","details":null}`
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, "should return 401 status code")
+	assert.Equal(t, expectedResponseBody, string(responseBody), "should return error details in the response body")
 }
 
-func TestIntegrationRegisterUserSuccessfulRegistration(t *testing.T) {
+func TestIntegrationLoginSuccessfulResponse(t *testing.T) {
 	// ARRANGE
 	setupIntegrationTest()
 	defer teardownIntegrationTest()
 
-	user := testutil.GenMockUser(nil)
-	url := fmt.Sprintf("%s/users/registration", testServer.URL)
-	email := user.Email
 	password := "Password123!"
+	passwordHashBytes, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	passwordHash := string(passwordHashBytes)
+	user := testutil.GenMockUser(&model.User{Password: &passwordHash})
+	url := fmt.Sprintf("%s/auth/login", testServer.URL)
+	email := user.Email
+
+	// adding user with the email in the database with random password hash
+	smt, _ := testDbCon.Prepare("INSERT INTO users (id, email, password, first_name, last_name, created_at, updated_at) VALUE (?, ?, ?, ?, ?, ?, ?)")
+	smt.Exec(user.Id, user.Email, user.Password, user.FirstName, user.LastName, user.CreatedAt, user.UpdatedAt)
+	smt.Close()
 
 	// ACT
 	reqBody := []byte(fmt.Sprintf(`{"email": "%s","password": "%s"}`, email, password))
@@ -76,18 +84,11 @@ func TestIntegrationRegisterUserSuccessfulRegistration(t *testing.T) {
 
 	// ASSERT
 	responseBodyByte, _ := io.ReadAll(resp.Body)
-	responseBody := model.UserRegApiRes{}
+	responseBody := model.LoginApiRes{}
 	_ = json.Unmarshal(responseBodyByte, &responseBody)
-	userCreatedAtRes, _ := time.Parse(time.RFC3339, responseBody.User.CreatedAt)
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "should return 200 status code")
 	assert.Equal(t, email, responseBody.User.Email, "should return user email in the response body")
 	assert.NotNil(t, responseBody.User.Id, "should return user id in the response body")
-	assert.WithinDuration(t, time.Now(), userCreatedAtRes, time.Second, "should return user creation date in the response body")
-
-	count := 0
-	res, _ := testDbCon.Query(fmt.Sprintf("SELECT COUNT(*) FROM users WHERE email=\"%s\"", email))
-	if res.Next() {
-		res.Scan(&count)
-	}
-	assert.Equal(t, 1, count, "there should be a user with the email in the database")
+	assert.Equal(t, user.CreatedAt.Format(time.RFC3339), responseBody.User.CreatedAt, "should return user creation date in the response body")
+	assert.NotNil(t, responseBody.Jwt, "should return jwt for the user in the response body")
 }

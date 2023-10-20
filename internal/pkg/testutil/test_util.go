@@ -21,8 +21,8 @@ func GenMockUser(partialData *model.User) model.User {
 	firstName := Fake.Person().FirstName()
 	lastName := Fake.Person().LastName()
 	password := Fake.Internet().Password()
-	createdAt := Fake.Time().TimeBetween(currentTime.AddDate(0, -1, 0), currentTime)
-	updatedAt := Fake.Time().TimeBetween(createdAt, currentTime)
+	createdAt := Fake.Time().TimeBetween(currentTime.AddDate(0, -1, 0), currentTime).UTC()
+	updatedAt := Fake.Time().TimeBetween(createdAt, currentTime).UTC()
 
 	if partialData != nil {
 		if partialData.Id != "" {
@@ -40,7 +40,7 @@ func GenMockUser(partialData *model.User) model.User {
 		if partialData.Password != nil && *partialData.Password != "" {
 			password = *partialData.Password
 		}
-		if (partialData.CreatedAt == time.Time{}) {
+		if (partialData.CreatedAt != time.Time{}) {
 			createdAt = partialData.CreatedAt
 		}
 		if partialData.UpdatedAt != nil && (*partialData.UpdatedAt != time.Time{}) {

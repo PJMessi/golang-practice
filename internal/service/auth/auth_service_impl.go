@@ -35,7 +35,9 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 	}
 	if !userExists {
 		s.logService.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' does not exist", email))
-		return model.User{}, "", exception.NewUnauthenticated()
+		return model.User{}, "", exception.NewUnauthenticatedFromBase(exception.Base{
+			Message: "invalid credentials",
+		})
 	}
 
 	if user.Password == nil {
@@ -47,7 +49,9 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 
 	if isValidHash := passwordutil.IsHashCorrect(*user.Password, password); !isValidHash {
 		s.logService.DebugCtx(ctx, fmt.Sprintf("user with the email '%s' did not provide correct password", email))
-		return model.User{}, "", exception.NewUnauthenticated()
+		return model.User{}, "", exception.NewUnauthenticatedFromBase(exception.Base{
+			Message: "invalid credentials",
+		})
 	}
 
 	jwtString, err := s.jwtHandler.Generate(user.Id, user.Email)
