@@ -49,3 +49,33 @@ func (h *HandlerImpl) createClaims(userId string, userEmail string) jwtgo.MapCla
 		"exp":        timeutil.GetTimestampAfterNSec(h.jwtExpTimeInSec),
 	}
 }
+
+func (h *HandlerImpl) Verify(jwtStr string) (valid bool, userId string, userEmail string, err error) {
+	token, err := jwtgo.Parse(jwtStr, func(token *jwtgo.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwtgo.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("invalid signing method")
+		}
+		return []byte(h.secret), nil
+	})
+
+	if err != nil {
+		return false, "", "", err
+	}
+
+	if token.Valid {
+		claims, ok := token.Claims.(jwtgo.MapClaims)
+		if !ok {
+			return false, "", "", fmt.Errorf("jwt.HandlerImpl.Verify(): Error getting claims from token")
+		}
+		userId, userIdOk := claims["user_id"].(string)
+		userEmail, userEmailOk := claims["user_email"].(string)
+
+		if !userIdOk || !userEmailOk {
+			return false, "", "", fmt.Errorf("jwt.HandlerImpl.Verify(): User ID or User Email not found in claims")
+		}
+
+		return true, userId, userEmail, nil
+	} else {
+		return false, "", "", fmt.Errorf("jwt.HandlerImpl.Verify(): Token is not valid")
+	}
+}
