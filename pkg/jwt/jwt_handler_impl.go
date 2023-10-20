@@ -13,6 +13,7 @@ import (
 type HandlerImpl struct {
 	secret          []byte
 	jwtExpTimeInSec int64
+	issuer          string
 }
 
 func NewHandler(logService logger.Service, appConfig *config.AppConfig) (Handler, error) {
@@ -27,6 +28,7 @@ func NewHandler(logService logger.Service, appConfig *config.AppConfig) (Handler
 	return &HandlerImpl{
 		secret:          strutil.ConvertToBytes(appConfig.JWT_SECRET),
 		jwtExpTimeInSec: jwtExpTimeInSec,
+		issuer:          "golang-practice",
 	}, nil
 }
 
@@ -47,6 +49,7 @@ func (h *HandlerImpl) createClaims(userId string, userEmail string) jwtgo.MapCla
 		"user_id":    userId,
 		"user_email": userEmail,
 		"exp":        timeutil.GetTimestampAfterNSec(h.jwtExpTimeInSec),
+		"issuer":     h.issuer,
 	}
 }
 
