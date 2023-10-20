@@ -70,7 +70,9 @@ func Test_Service_Login_User_Doesnt_exist(t *testing.T) {
 	// ASSERT
 	expectedUserRes := model.User{}
 	expectedJwtStrRes := ""
-	expectedErr := exception.NewUnauthenticated()
+	expectedErr := exception.NewUnauthenticatedFromBase(exception.Base{
+		Message: "invalid credentials",
+	})
 	expectedLogStr := fmt.Sprintf("user with the email '%s' does not exist", email)
 
 	assert.Equal(t, userRes, expectedUserRes)
@@ -148,7 +150,9 @@ func Test_Service_Login_Incorrect_Pw(t *testing.T) {
 	// ASSERT
 	expectedUserRes := model.User{}
 	expectedJwtStrRes := ""
-	expectedErr := exception.NewUnauthenticated()
+	expectedErr := exception.NewUnauthenticatedFromBase(exception.Base{
+		Message: "invalid credentials",
+	})
 
 	assert.Equal(t, userRes, expectedUserRes)
 	assert.Equal(t, jwtStrRes, expectedJwtStrRes)
