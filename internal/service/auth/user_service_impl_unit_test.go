@@ -19,32 +19,32 @@ import (
 )
 
 // setupMocksForServiceImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMock, *jwt.UtilMock, *logger.ServiceMock) {
+func setupMocksForServiceImplTest() (*ServiceImpl, *database.DbMock, *jwt.HandlerMock, *logger.ServiceMock) {
 	dbMock := new(database.DbMock)
-	jwtUtilMock := new(jwt.UtilMock)
+	jwtHandlerMock := new(jwt.HandlerMock)
 	logServiceMock := new(logger.ServiceMock)
 	service := &ServiceImpl{
 		db:         dbMock,
-		jwtHandler: jwtUtilMock,
+		jwtHandler: jwtHandlerMock,
 		logService: logServiceMock,
 	}
-	return service, dbMock, jwtUtilMock, logServiceMock
+	return service, dbMock, jwtHandlerMock, logServiceMock
 }
 
 // setupMocksForNewService returns mocked dependencies for NewService func
-func setupMocksForNewService() (*database.DbMock, *jwt.UtilMock, *logger.ServiceMock) {
+func setupMocksForNewService() (*database.DbMock, *jwt.HandlerMock, *logger.ServiceMock) {
 	dbMock := new(database.DbMock)
-	jwtUtilMock := new(jwt.UtilMock)
+	jwtHandlerMock := new(jwt.HandlerMock)
 	logServiceMock := new(logger.ServiceMock)
-	return dbMock, jwtUtilMock, logServiceMock
+	return dbMock, jwtHandlerMock, logServiceMock
 }
 
 func Test_NewService(t *testing.T) {
 	// ARRANGE
-	dbMock, jwtUtilMock, logServiceMock := setupMocksForNewService()
+	dbMock, jwtHandlerMock, logServiceMock := setupMocksForNewService()
 
 	// ACT
-	res := NewService(logServiceMock, jwtUtilMock, dbMock)
+	res := NewService(logServiceMock, jwtHandlerMock, dbMock)
 
 	// ARRANGE
 	resServiceImpl := res.(*ServiceImpl)
@@ -161,7 +161,7 @@ func Test_Service_Login_Incorrect_Pw(t *testing.T) {
 
 func Test_Service_Login_Success_Res(t *testing.T) {
 	// ARRANGE
-	service, dbMock, jwtUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, jwtHandlerMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := strings.ToUpper(testutil.Fake.Internet().Email())
@@ -173,7 +173,7 @@ func Test_Service_Login_Success_Res(t *testing.T) {
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
-	jwtUtilMock.On("Generate", user.Id, user.Email).Return(jwtStr, nil)
+	jwtHandlerMock.On("Generate", jwt.JwtPayload{UserId: user.Id, UserEmail: user.Email}).Return(jwtStr, nil)
 
 	// ACT
 	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
@@ -189,7 +189,7 @@ func Test_Service_Login_Success_Res(t *testing.T) {
 
 func Test_Service_Login_Err_Generating_Jwt(t *testing.T) {
 	// ARRANGE
-	service, dbMock, jwtUtilMock, logServiceMock := setupMocksForServiceImplTest()
+	service, dbMock, jwtHandlerMock, logServiceMock := setupMocksForServiceImplTest()
 
 	ctx := context.Background()
 	email := testutil.Fake.Internet().Email()
@@ -201,7 +201,7 @@ func Test_Service_Login_Err_Generating_Jwt(t *testing.T) {
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	dbMock.On("GetUserByEmail", ctx, email).Return(true, user, nil)
-	jwtUtilMock.On("Generate", user.Id, user.Email).Return("", generateErr)
+	jwtHandlerMock.On("Generate", jwt.JwtPayload{UserId: user.Id, UserEmail: user.Email}).Return("", generateErr)
 
 	// ACT
 	userRes, jwtStrRes, errRes := service.Login(ctx, email, password)
