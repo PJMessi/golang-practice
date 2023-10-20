@@ -1,6 +1,11 @@
 package jwt
 
+type JwtPayload struct {
+	UserId    string
+	UserEmail string
+}
+
 type Handler interface {
-	Generate(userId string, userEmail string) (jwtString string, err error)
-	Verify(jwtStr string) (valid bool, userId string, userEmail string, err error)
+	Generate(payload JwtPayload) (jwtString string, err error)
+	Verify(jwtStr string) (valid bool, payload JwtPayload, err error)
 }

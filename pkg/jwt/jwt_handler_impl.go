@@ -32,8 +32,8 @@ func NewHandler(logService logger.Service, appConfig *config.AppConfig) (Handler
 	}, nil
 }
 
-func (h *HandlerImpl) Generate(userId string, userEmail string) (jwtString string, err error) {
-	claims := h.createClaims(userId, userEmail)
+func (h *HandlerImpl) Generate(payload JwtPayload) (jwtString string, err error) {
+	claims := h.createClaims(payload)
 	token := jwtgo.NewWithClaims(jwtgo.SigningMethodHS256, claims)
 
 	jwtString, err = token.SignedString(h.secret)
@@ -44,16 +44,16 @@ func (h *HandlerImpl) Generate(userId string, userEmail string) (jwtString strin
 	return jwtString, nil
 }
 
-func (h *HandlerImpl) createClaims(userId string, userEmail string) jwtgo.MapClaims {
+func (h *HandlerImpl) createClaims(payload JwtPayload) jwtgo.MapClaims {
 	return jwtgo.MapClaims{
-		"user_id":    userId,
-		"user_email": userEmail,
+		"user_id":    payload.UserId,
+		"user_email": payload.UserEmail,
 		"exp":        timeutil.GetTimestampAfterNSec(h.jwtExpTimeInSec),
 		"issuer":     h.issuer,
 	}
 }
 
-func (h *HandlerImpl) Verify(jwtStr string) (valid bool, userId string, userEmail string, err error) {
+func (h *HandlerImpl) Verify(jwtStr string) (valid bool, payload JwtPayload, err error) {
 	token, err := jwtgo.Parse(jwtStr, func(token *jwtgo.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwtgo.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("invalid signing method")
@@ -62,23 +62,23 @@ func (h *HandlerImpl) Verify(jwtStr string) (valid bool, userId string, userEmai
 	})
 
 	if err != nil {
-		return false, "", "", err
+		return false, JwtPayload{}, err
 	}
 
 	if token.Valid {
 		claims, ok := token.Claims.(jwtgo.MapClaims)
 		if !ok {
-			return false, "", "", fmt.Errorf("jwt.HandlerImpl.Verify(): Error getting claims from token")
+			return false, JwtPayload{}, fmt.Errorf("jwt.HandlerImpl.Verify(): Error getting claims from token")
 		}
 		userId, userIdOk := claims["user_id"].(string)
 		userEmail, userEmailOk := claims["user_email"].(string)
 
 		if !userIdOk || !userEmailOk {
-			return false, "", "", fmt.Errorf("jwt.HandlerImpl.Verify(): User ID or User Email not found in claims")
+			return false, JwtPayload{}, fmt.Errorf("jwt.HandlerImpl.Verify(): User ID or User Email not found in claims")
 		}
 
-		return true, userId, userEmail, nil
+		return true, JwtPayload{UserId: userId, UserEmail: userEmail}, nil
 	} else {
-		return false, "", "", fmt.Errorf("jwt.HandlerImpl.Verify(): Token is not valid")
+		return false, JwtPayload{}, fmt.Errorf("jwt.HandlerImpl.Verify(): Token is not valid")
 	}
 }

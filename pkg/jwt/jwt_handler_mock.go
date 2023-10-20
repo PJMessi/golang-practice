@@ -10,12 +10,12 @@ func NewUtilMock() Handler {
 	return &UtilMock{}
 }
 
-func (u *UtilMock) Generate(userId string, userEmail string) (jwtString string, err error) {
-	args := u.Called(userId, userEmail)
+func (u *UtilMock) Generate(payload JwtPayload) (jwtString string, err error) {
+	args := u.Called(payload)
 	return args.String(0), args.Error(1)
 }
 
-func (u *UtilMock) Verify(jwtStr string) (valid bool, userId string, userEmail string, err error) {
+func (u *UtilMock) Verify(jwtStr string) (valid bool, payload JwtPayload, err error) {
 	args := u.Called(jwtStr)
-	return args.Bool(0), args.String(1), args.String(2), args.Error(3)
+	return args.Bool(0), args.Get(1).(JwtPayload), args.Error(3)
 }

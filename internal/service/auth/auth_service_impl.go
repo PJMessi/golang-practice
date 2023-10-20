@@ -54,7 +54,7 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 		})
 	}
 
-	jwtString, err := s.jwtHandler.Generate(user.Id, user.Email)
+	jwtString, err := s.jwtHandler.Generate(jwt.JwtPayload{UserId: user.Id, UserEmail: user.Email})
 	if err != nil {
 		return model.User{}, "", err
 	}
