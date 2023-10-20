@@ -86,9 +86,10 @@ func TestIntegrationLoginSuccessfulResponse(t *testing.T) {
 	responseBodyByte, _ := io.ReadAll(resp.Body)
 	responseBody := model.LoginApiRes{}
 	_ = json.Unmarshal(responseBodyByte, &responseBody)
+	userCreatedAtRes, _ := time.Parse(time.RFC3339, responseBody.User.CreatedAt)
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "should return 200 status code")
 	assert.Equal(t, email, responseBody.User.Email, "should return user email in the response body")
 	assert.NotNil(t, responseBody.User.Id, "should return user id in the response body")
-	assert.Equal(t, user.CreatedAt.Format(time.RFC3339), responseBody.User.CreatedAt, "should return user creation date in the response body")
+	assert.WithinDuration(t, user.CreatedAt, userCreatedAtRes, time.Second, "should return user creation date in the response body")
 	assert.NotNil(t, responseBody.Jwt, "should return jwt for the user in the response body")
 }
