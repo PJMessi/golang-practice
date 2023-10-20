@@ -10,11 +10,11 @@ import (
 	"github.com/pjmessi/golang-practice/cmd/restapi"
 	"github.com/pjmessi/golang-practice/config"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
 	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
 	"github.com/pjmessi/golang-practice/pkg/event"
-	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
 	"github.com/pjmessi/golang-practice/pkg/validation"
 )

@@ -7,9 +7,9 @@ import (
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
+	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
 	"github.com/pjmessi/golang-practice/internal/pkg/passwordutil"
 	"github.com/pjmessi/golang-practice/pkg/exception"
-	"github.com/pjmessi/golang-practice/pkg/jwt"
 	"github.com/pjmessi/golang-practice/pkg/logger"
 )
 
