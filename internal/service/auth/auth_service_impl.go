@@ -61,3 +61,16 @@ func (s *ServiceImpl) Login(ctx context.Context, email string, password string) 
 
 	return user, jwtString, nil
 }
+
+func (s *ServiceImpl) VerifyJwt(ctx context.Context, jwtStr string) (jwt.JwtPayload, error) {
+	isValid, jwtPayload, err := s.jwtHandler.Verify(jwtStr)
+	if err != nil {
+		return jwt.JwtPayload{}, err
+	}
+
+	if !isValid {
+		return jwt.JwtPayload{}, exception.Unauthenticated{}
+	}
+
+	return jwtPayload, nil
+}
