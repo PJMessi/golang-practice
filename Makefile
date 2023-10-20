@@ -23,6 +23,12 @@ run:
 deps:
 	$(GOGET) mod tidy
 
+testunit:
+	$(GOTEST) -v ./internal/... ./pkg/...
+
+testintegration:
+	$(GOTEST) -v ./tests/...
+
 test:
 	$(GOTEST) -v ./...
 
