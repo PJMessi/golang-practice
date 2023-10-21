@@ -17,3 +17,12 @@ func GetTraceIdFromCtx(ctx context.Context) string {
 
 	return traceId
 }
+
+func AddValue(ctx context.Context, key string, value interface{}) context.Context {
+	return context.WithValue(ctx, contextKey(key), value)
+}
+
+func GetValue(ctx context.Context, key string) interface{} {
+	value := ctx.Value(contextKey(key))
+	return value
+}

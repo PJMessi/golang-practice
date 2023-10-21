@@ -12,11 +12,11 @@ import (
 
 func RegisterRoutes(logService logger.Service, authFacade auth.Facade, userFacade user.Facade) http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
-	handler := NewRouteHandler(logService, authFacade, userFacade)
+	routeHandler := NewRouteHandler(logService, authFacade, userFacade)
 
-	router.HandleFunc("/auth/login", handler.handlePanic(handler.handleLoginApi)).Methods("POST")
-	router.HandleFunc("/users/registration", handler.handlePanic(handler.handleUserRegApi)).Methods("POST")
-	router.HandleFunc("/users/profile", handler.handlePanicWithAuth(handler.handleGetProfileApi)).Methods("GET")
+	router.HandleFunc("/auth/login", routeHandler.attachMiddlewares(routeHandler.handleLoginApi, false)).Methods("POST")
+	router.HandleFunc("/users/registration", routeHandler.attachMiddlewares(routeHandler.handleUserRegApi, false)).Methods("POST")
+	router.HandleFunc("/users/profile", routeHandler.attachMiddlewares(routeHandler.handleGetProfileApi, true)).Methods("GET")
 
 	return router
 }

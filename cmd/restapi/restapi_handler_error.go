@@ -4,24 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"runtime"
 	"strings"
-	"time"
 
-	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
-	"github.com/pjmessi/golang-practice/pkg/ctxutil"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/structutil"
 	"github.com/pjmessi/golang-practice/pkg/strutil"
-	"github.com/pjmessi/golang-practice/pkg/uuidutil"
 )
-
-type HttpHandlerWithCtx func(context.Context, http.ResponseWriter, *http.Request)
-type HttpHandlerWithCtxAndJwtPayload func(context.Context, jwt.JwtPayload, http.ResponseWriter, *http.Request)
 
 type ErrRes exception.Base
 
-func (rh *RouteHandler) handleErr(ctx context.Context, w http.ResponseWriter, err error) {
+func (rh *RouteHandler) writeHttpResFromErr(ctx context.Context, w http.ResponseWriter, err error) {
 	switch e := err.(type) {
 	case exception.InvalidReq:
 		rh.convertDetailsKeyToCamelcase(&e)
@@ -39,37 +31,6 @@ func (rh *RouteHandler) handleErr(ctx context.Context, w http.ResponseWriter, er
 	default:
 		rh.logService.ErrorCtx(ctx, fmt.Sprintf("unexpected error: %s", err.Error()))
 		rh.writeInternalErrRes(ctx, w)
-	}
-}
-
-func (rh *RouteHandler) handlePanic(next HttpHandlerWithCtx) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		traceId, err := uuidutil.GenUuidV4()
-		if err != nil {
-			rh.handleErr(context.Background(), w, fmt.Errorf("error while generating traceId"))
-			return
-		}
-		ctx := ctxutil.NewCtxWithTraceId(traceId)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("X-Trace-ID", traceId)
-
-		defer func() {
-			if recoverRes := recover(); recoverRes != nil {
-				stack := make([]byte, 1024)
-				runtime.Stack(stack, false)
-				rh.logService.ErrorCtx(ctx, fmt.Sprintf("recovered from panic: %v\n%s", recoverRes, stack))
-				rh.writeInternalErrRes(ctx, w)
-			}
-		}()
-
-		startTime := time.Now()
-		rh.logService.DebugCtx(ctx, fmt.Sprintf("new request: %s %s", r.Method, r.URL.String()))
-
-		next(ctx, w, r)
-
-		difference := time.Since(startTime)
-		rh.logService.DebugCtx(ctx, fmt.Sprintf("request completed, took %d ms", difference.Milliseconds()))
 	}
 }
 
@@ -109,44 +70,6 @@ func (rh *RouteHandler) convertDetailsKeyToCamelcase(validationErr *exception.In
 			camelCaseDetails[camelcaseKey] = val
 		}
 		*validationErr.Details = camelCaseDetails
-	}
-}
-
-func (rh *RouteHandler) handlePanicWithAuth(next HttpHandlerWithCtxAndJwtPayload) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		traceId, err := uuidutil.GenUuidV4()
-		if err != nil {
-			rh.handleErr(context.Background(), w, fmt.Errorf("error while generating traceId"))
-			return
-		}
-		ctx := ctxutil.NewCtxWithTraceId(traceId)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("X-Trace-ID", traceId)
-
-		defer func() {
-			if recoverRes := recover(); recoverRes != nil {
-				stack := make([]byte, 1024)
-				runtime.Stack(stack, false)
-				rh.logService.ErrorCtx(ctx, fmt.Sprintf("recovered from panic: %v\n%s", recoverRes, stack))
-				rh.writeInternalErrRes(ctx, w)
-			}
-		}()
-
-		jwt := rh.extractBearerToken(ctx, r)
-		jwtPayload, err := rh.authFacade.VerifyJwt(ctx, jwt)
-		if err != nil {
-			rh.handleErr(ctx, w, err)
-			return
-		}
-
-		startTime := time.Now()
-		rh.logService.DebugCtx(ctx, fmt.Sprintf("new request: %s %s", r.Method, r.URL.String()))
-
-		next(ctx, jwtPayload, w, r)
-
-		difference := time.Since(startTime)
-		rh.logService.DebugCtx(ctx, fmt.Sprintf("request completed, took %d ms", difference.Milliseconds()))
 	}
 }
 
