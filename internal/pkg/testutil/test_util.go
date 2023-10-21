@@ -1,8 +1,12 @@
 package testutil
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 
@@ -110,4 +114,23 @@ func GetTestDbCon(appConf *config.AppConfig) (*sql.DB, error) {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 	return db, nil
+}
+
+func SetupTestUser(testServerUrl string) model.LoginApiRes {
+	// registering new user
+	url := fmt.Sprintf("%s/users/registration", testServerUrl)
+	email := Fake.Internet().Email()
+	password := "Password123!"
+	reqBody := []byte(fmt.Sprintf(`{"email": "%s","password": "%s"}`, email, password))
+	http.Post(url, "application/json", bytes.NewBuffer(reqBody))
+
+	// logging in the new user
+	url = fmt.Sprintf("%s/auth/login", testServerUrl)
+	reqBody = []byte(fmt.Sprintf(`{"email": "%s","password": "%s"}`, email, password))
+	resp, _ := http.Post(url, "application/json", bytes.NewBuffer(reqBody))
+	responseBodyByte, _ := io.ReadAll(resp.Body)
+	responseBody := model.LoginApiRes{}
+	_ = json.Unmarshal(responseBodyByte, &responseBody)
+
+	return responseBody
 }

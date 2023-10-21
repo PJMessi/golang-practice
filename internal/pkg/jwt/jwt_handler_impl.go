@@ -66,7 +66,7 @@ func (h *HandlerImpl) Verify(jwtStr string) (valid bool, payload JwtPayload, err
 	})
 
 	if err != nil {
-		return false, JwtPayload{}, fmt.Errorf("jwt.handlerImpl.Verify(): %w", err)
+		return false, JwtPayload{}, nil
 	}
 
 	if token.Valid {
