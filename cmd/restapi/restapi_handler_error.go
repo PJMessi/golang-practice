@@ -151,10 +151,8 @@ func (rh *RouteHandler) handlePanicWithAuth(next HttpHandlerWithCtxAndJwtPayload
 }
 
 func (rh *RouteHandler) extractBearerToken(ctx context.Context, r *http.Request) string {
-	// Get the Authorization header from the request
 	authHeader := r.Header.Get("Authorization")
 
-	// Check if the Authorization header is empty
 	if authHeader == "" {
 		rh.logService.DebugCtx(ctx, "empty Authorization header")
 		return ""
