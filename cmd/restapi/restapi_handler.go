@@ -28,18 +28,18 @@ func NewRouteHandler(logService logger.Service, authFacade auth.Facade, userFaca
 	}
 }
 
-func (rh *RouteHandler) attachMiddlewares(handler http.HandlerFunc, authenticate bool) http.HandlerFunc {
-	apiHandler := http.Handler(handler)
+func (rh *RouteHandler) attachMiddlewares(handlerFunc http.HandlerFunc, authenticate bool) http.HandlerFunc {
+	handler := http.Handler(handlerFunc)
 
 	if authenticate {
-		apiHandler = rh.authMiddleware(apiHandler)
+		handler = rh.authMiddleware(handler)
 	}
 
-	apiHandler = rh.reqLoggerMiddleware(apiHandler)
-	apiHandler = rh.panicHandlerMiddleware(apiHandler)
-	apiHandler = rh.ctxMiddleware(apiHandler)
+	handler = rh.reqLoggerMiddleware(handler)
+	handler = rh.panicHandlerMiddleware(handler)
+	handler = rh.ctxMiddleware(handler)
 	return func(w http.ResponseWriter, r *http.Request) {
-		apiHandler.ServeHTTP(w, r)
+		handler.ServeHTTP(w, r)
 	}
 }
 
