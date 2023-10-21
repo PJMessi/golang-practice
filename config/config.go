@@ -49,7 +49,7 @@ func getEnvFilePath(env string) string {
 	}
 
 	if env == "test" {
-		return "../.env"
+		return "../.env.test"
 	}
 
 	return ""
