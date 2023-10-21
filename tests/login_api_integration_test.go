@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -14,6 +15,27 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
+
+func TestIntegrationLoginWithInvalidRequestBody(t *testing.T) {
+	// ARRANGE
+	setupIntegrationTest()
+	defer teardownIntegrationTest()
+
+	url := fmt.Sprintf("%s/auth/login", testServer.URL)
+	email := ""
+	password := ""
+
+	// ACT
+	reqBody := []byte(fmt.Sprintf(`{"email": "%s","password": "%s"}`, email, password))
+	resp, _ := http.Post(url, "application/json", bytes.NewBuffer(reqBody))
+
+	// ASSERT
+	responseBody, _ := io.ReadAll(resp.Body)
+	log.Println(string(responseBody))
+	expectedResponseBody := `{"type":"REQUEST_DATA.INVALID","message":"invalid request data","details":{"email":"validation failed for tag: 'required'","password":"validation failed for tag: 'required'"}}`
+	assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode, "should return 422 status code")
+	assert.Equal(t, expectedResponseBody, string(responseBody), "should return error details in the response body")
+}
 
 func TestIntegrationLoginWithUnregisteredEmail(t *testing.T) {
 	// ARRANGE

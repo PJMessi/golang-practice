@@ -34,6 +34,26 @@ func TestIntegrationRegisterUserWithWeakPassword(t *testing.T) {
 	assert.Equal(t, expectedResponseBody, string(responseBody), "should return error details in the response body")
 }
 
+func TestIntegrationRegisterUserWithInvalidRequestBody(t *testing.T) {
+	// ARRANGE
+	setupIntegrationTest()
+	defer teardownIntegrationTest()
+
+	url := fmt.Sprintf("%s/users/registration", testServer.URL)
+	email := ""
+	password := ""
+
+	// ACT
+	reqBody := []byte(fmt.Sprintf(`{"email": "%s","password": "%s"}`, email, password))
+	resp, _ := http.Post(url, "application/json", bytes.NewBuffer(reqBody))
+
+	// ASSERT
+	responseBody, _ := io.ReadAll(resp.Body)
+	expectedResponseBody := `{"type":"REQUEST_DATA.INVALID","message":"invalid request data","details":{"email":"validation failed for tag: 'required'","password":"validation failed for tag: 'required'"}}`
+	assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode, "should return 422 status code")
+	assert.Equal(t, expectedResponseBody, string(responseBody), "should return the error details in the response body")
+}
+
 func TestIntegrationRegisterUserWithUsedEmail(t *testing.T) {
 	// ARRANGE
 	setupIntegrationTest()
