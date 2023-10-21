@@ -3,11 +3,13 @@ package restapi
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
 	"github.com/pjmessi/golang-practice/pkg/ctxutil"
@@ -29,6 +31,77 @@ func NewRouteHandler(logService logger.Service, authFacade auth.Facade, userFaca
 		authFacade: authFacade,
 		userFacade: userFacade,
 		logService: logService,
+	}
+}
+
+func (rh *RouteHandler) handlePublicApi(facadeFunc FacadeApiFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		reqBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			rh.writeHttpResFromErr(ctx, w, err)
+			return
+		}
+
+		// TODO: TEST
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				rh.writeHttpResFromErr(ctx, w, err)
+			}
+		}(r.Body)
+
+		resByte, err := facadeFunc(ctx, reqBytes)
+		if err != nil {
+			rh.writeHttpResFromErr(ctx, w, err)
+			return
+		}
+
+		_, err = w.Write(resByte)
+		if err != nil {
+			rh.writeHttpResFromErr(ctx, w, err)
+			return
+		}
+	}
+}
+
+func (rh *RouteHandler) handlePrivateApi(facadeFunc FacadeApiFuncWithAuth) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		jwtPayload, ok := ctxutil.GetValue(ctx, "jwtPayload").(jwt.JwtPayload)
+		if !ok {
+			rh.logService.DebugCtx(ctx, "restapi.RouteHandler.handlePrivateApi(): jwtPayload not set in context")
+			rh.writeHttpResFromErr(ctx, w, exception.NewUnauthenticated())
+			return
+		}
+
+		reqBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			rh.writeHttpResFromErr(ctx, w, err)
+			return
+		}
+
+		// TODO: TEST
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				rh.writeHttpResFromErr(ctx, w, err)
+			}
+		}(r.Body)
+
+		resByte, err := facadeFunc(ctx, reqBytes, jwtPayload)
+		if err != nil {
+			rh.writeHttpResFromErr(ctx, w, err)
+			return
+		}
+
+		_, err = w.Write(resByte)
+		if err != nil {
+			rh.writeHttpResFromErr(ctx, w, err)
+			return
+		}
 	}
 }
 
@@ -187,4 +260,17 @@ func (rh *RouteHandler) extractBearerToken(ctx context.Context, r *http.Request)
 	}
 
 	return jwt
+}
+
+func (rh *RouteHandler) handleRouteNotFound() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		err := exception.NewNotFoundFromBase(exception.Base{
+			Type:    "ROUTE.NOT_FOUND",
+			Message: "route not found",
+		})
+
+		rh.writeHttpResFromErr(ctx, w, err)
+	}
 }
