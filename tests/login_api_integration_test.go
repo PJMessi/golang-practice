@@ -92,4 +92,12 @@ func TestIntegrationLoginSuccessfulResponse(t *testing.T) {
 	assert.NotNil(t, responseBody.User.Id, "should return user id in the response body")
 	assert.WithinDuration(t, user.CreatedAt, userCreatedAtRes, time.Second, "should return user creation date in the response body")
 	assert.NotNil(t, responseBody.Jwt, "should return jwt for the user in the response body")
+
+	url = fmt.Sprintf("%s/users/profile", testServer.URL)
+	req, _ := http.NewRequest("GET", url, nil)
+	headers := http.Header{}
+	headers.Add("Authorization", fmt.Sprintf("Bearer %s", responseBody.Jwt))
+	req.Header = headers
+	resp, _ = http.DefaultClient.Do(req)
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "the returned jwt should be able to authenticate the user")
 }
