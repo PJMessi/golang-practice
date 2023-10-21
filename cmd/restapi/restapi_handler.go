@@ -20,6 +20,10 @@ import (
 	"github.com/pjmessi/golang-practice/pkg/uuidutil"
 )
 
+type FacadeApiFunc func(ctx context.Context, reqBytes []byte) ([]byte, error)
+type FacadeApiFuncWithAuth func(ctx context.Context, reqBytes []byte, jwtPayload jwt.JwtPayload) ([]byte, error)
+type ErrRes exception.Base
+
 type RouteHandler struct {
 	authFacade auth.Facade
 	userFacade user.Facade
