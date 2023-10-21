@@ -15,6 +15,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type FacadeApiFunc func(ctx context.Context, reqBytes []byte) ([]byte, error)
+type FacadeApiFuncWithAuth func(ctx context.Context, reqBytes []byte, jwtPayload jwt.JwtPayload) ([]byte, error)
+type ErrRes exception.Base
+
 func RegisterRoutes(logService logger.Service, authFacade auth.Facade, userFacade user.Facade) http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
 	routeHandler := NewRouteHandler(logService, authFacade, userFacade)
@@ -26,9 +30,6 @@ func RegisterRoutes(logService logger.Service, authFacade auth.Facade, userFacad
 
 	return router
 }
-
-type FacadeApiFunc func(ctx context.Context, reqBytes []byte) ([]byte, error)
-type FacadeApiFuncWithAuth func(ctx context.Context, reqBytes []byte, jwtPayload jwt.JwtPayload) ([]byte, error)
 
 func (rh *RouteHandler) handlePublicApi(facadeFunc FacadeApiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
