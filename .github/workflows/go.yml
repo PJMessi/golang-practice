@@ -41,6 +41,11 @@ jobs:
 
       - name: "Setup services"
         run: docker-compose -f docker-compose-ci.yml up -d
+        env:
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          DB_DATABASE: ${{ env.DB_DATABASE }}
+          DB_PORT: ${{ env.DB_PORT }}
         
       - name: Wait for 10 seconds for services initialization
         run: sleep 10
