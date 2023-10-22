@@ -20,7 +20,7 @@ services:
       MYSQL_ROOT_PASSWORD: "root_password"
       # MYSQL_USER: ${DB_USER}
       # MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_DATABASE: "golang_test"
     ports:
         - "${DB_PORT}:3306"
     networks: [ "golangpractice" ]
