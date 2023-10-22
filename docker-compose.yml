@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0.31
+    environment:
+      MYSQL_ROOT_PASSWORD: "root_password"
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    ports:
+        - "${DB_PORT}:3306"
+    networks: [ "golangpractice" ]
+    volumes:
+      - ./migration.sql:/docker-entrypoint-initdb.d/init.sql
+
+  phpmyadmin:
+    image: phpmyadmin
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: root_password
+      UPLOAD_LIMIT: 300M
+    restart: always
+    ports:
+      - 8081:80    
+    networks: [ "golangpractice" ]
+
+  nats:
+    image: nats
+    ports:
+      - "8222:8222"
+      - "4222:4222"
+    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --http_port 8222 "
+    networks: [ "golangpractice" ]
+
+networks:
+  golangpractice:
+    name: golangpractice
+    driver: bridge
