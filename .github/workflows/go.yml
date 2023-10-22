@@ -50,6 +50,9 @@ jobs:
           DB_USER: ${DB_USER}
           DB_PASSWORD: ${DB_PASSWORD}
           DB_DATABASE: ${DB_DATABASE}
+        
+      - name: Wait for 10 seconds
+        run: sleep 10
 
-      - name: Unit Tests
+      - name: Integration Tests
         run: make testintegration
