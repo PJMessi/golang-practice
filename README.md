@@ -1,84 +1,54 @@
-README in progress
+# GoLang Practice Project
+This is just a test application for golang practice.
 
-When creating a basic project structure in the Go programming language, it's important to follow some conventions to keep your code organized and maintainable. Here's a simple project structure for a Go application:
+## Basic Commands
+Build application
+```
+make build
+```
 
-go
-Copy code
-myapp/
-    ├── main.go
-    ├── go.mod
-    ├── go.sum
-    ├── cmd/
-    │   └── myapp/
-    │       └── main.go
-    ├── internal/
-    │   └── pkg/
-    │       ├── foo.go
-    │       └── bar.go
-    ├── pkg/
-    │   ├── util.go
-    │   └── constants.go
-    ├── api/
-    │   ├── handlers/
-    │   │   ├── user_handler.go
-    │   │   └── post_handler.go
-    │   └── routes.go
-    ├── config/
-    │   └── config.go
-    ├── static/
-    │   ├── index.html
-    │   ├── styles/
-    │   └── scripts/
-    ├── templates/
-    │   ├── base.html
-    │   └── home.html
-    ├── tests/
-    │   ├── unit/
-    │   │   ├── foo_test.go
-    │   │   └── bar_test.go
-    │   └── integration/
-    │       ├── api_test.go
-    │       └── app_test.go
-    ├── docs/
-    │   ├── design.md
-    │   └── api.md
-    └── README.md
-Explanation of the structure:
+Build and run application
+```
+make run
+```
 
-main.go: This is the entry point of your application. It usually contains the main() function.
+## Directories
+`pkg`: Contains general purpose services and utilities.  
+`internal`: Contains project specific services and utilities.  
+`tests`: Contains integration tests.  
+`config`: Contains config package that loads environment variables.  
+`cmd`: Separates app's main function into dedicated package that allows us to have multiple entry points if needed. Currently has dedicated package for restapi only.  
 
-go.mod and go.sum: These files are used to manage project dependencies with Go modules.
+## Unit Tests
+Unit tests for a package is located in the same directory with with filename of orginal_pkg_filename_unit_test.go.
 
-cmd/myapp/main.go: Separating your application's main function into a dedicated package allows you to have multiple entry points if needed.
+```
+make testunit
+```
 
-internal/pkg: This directory contains packages that are specific to your application and should not be used by external projects.
+## Integration Tests
+Integration tests are all located in tests directory. Nothing is mocked in integration tests in order to make the test environment close to the prod environment as much as possible. So we need to spin up the actual mysql and NATS services specifically for testing. There is a docker compose file `docker-compose-ci.yml` which is used for integration tests in the GitHub workflow. Same can be used to run the integration tests locally.
 
-pkg: This directory contains packages that can be used by other projects. It's a good place for utility functions and constants.
+Everytime changes is pushed to main branch, github workflow will run both the unit tests and integration tests.
 
-api: This directory contains your HTTP API handlers and routing configuration.
+```
+make testintegration
+```
 
-config: Configuration files or code can go here.
+## Whole Tests
+Runs both unit and integration tests
+```
+make test
+```
+Runs both unit and integration tests and computes unit tests coverage
+```
+make testcov
+```
+Runs both unit and integration tests, computes unit test coverage, and generates a coverage report.
+```
+make testcovrep
+```
 
-static: Store static files like HTML, CSS, and JavaScript here.
+## Env Variables
+While starting the application, it loads the environment variables from the host machine. If there is a `.env` file in the root directory of the project, the values inside it will take precedence. For integration tests, the values inside `.env.test` will take precedence if it is present in the root directory.
 
-templates: This is where you can put your HTML templates if you're using a templating engine.
-
-tests: Organize your unit and integration tests here.
-
-docs: Documentation for your project, including design documents and API documentation.
-
-README.md: A README file to provide information about your project and how to use it.
-
-Keep in mind that this is just a basic project structure. Depending on the complexity of your project, you may need to adapt and extend it. Additionally, it's a good practice to follow the Go community's guidelines for naming conventions and package organization.
-
-
-  # golang_server:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #     args:
-  #       APP_PORT: "9000"
-  #   networks:
-  #     - golangpractice
-  #   ports:
-  #     - "9000:9000"
