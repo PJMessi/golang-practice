@@ -70,3 +70,15 @@ docs: Documentation for your project, including design documents and API documen
 README.md: A README file to provide information about your project and how to use it.
 
 Keep in mind that this is just a basic project structure. Depending on the complexity of your project, you may need to adapt and extend it. Additionally, it's a good practice to follow the Go community's guidelines for naming conventions and package organization.
+
+
+  # golang_server:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       APP_PORT: "9000"
+  #   networks:
+  #     - golangpractice
+  #   ports:
+  #     - "9000:9000"
