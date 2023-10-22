@@ -41,7 +41,7 @@ jobs:
 
       - uses: isbang/compose-action@v1.5.1
         with:
-          compose-file: "./docker/docker-compose-ci.yml"
+          compose-file: "docker-compose-ci.yml"
           down-flags: "--volumes"
           services: |
             nats
