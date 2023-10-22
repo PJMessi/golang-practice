@@ -35,8 +35,12 @@ jobs:
           DB_DATABASE: "golang_test"
           DB_PORT: "3700"
         
-      - name: Wait for 10 seconds for services initialization
-        run: sleep 10
+      - name: Wait for MySQL to be ready
+        run: |
+          until nc -z -v -w30 localhost 3700; do
+            echo "Waiting for MySQL to start..."
+            sleep 5
+          done
 
       - name: Integration Tests
         run: make testintegration
