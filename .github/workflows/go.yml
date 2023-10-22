@@ -46,6 +46,11 @@ jobs:
           services: |
             nats
             mysql
+        env:
+          DB_PORT: ${{ env.DB_PORT }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          DB_DATABASE: ${{ env.DB_DATABASE }}
         
       - name: Wait for 10 seconds for services initialization
         run: sleep 10
