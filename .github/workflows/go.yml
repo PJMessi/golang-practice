@@ -18,8 +18,8 @@ jobs:
       DB_HOST: "localhost"
       DB_PORT: "3700"
       DB_DATABASE: "golang_test"
-      DB_USER: "developer"
-      DB_PASSWORD: "developer_Password123!"
+      DB_USER: "root"
+      DB_PASSWORD: "root_password"
       JWT_SECRET: secret-for-jwt"
       JWT_EXPIRATION_TIME: "1d"
       SENDGRID_API_KEY: "test"
@@ -47,8 +47,8 @@ jobs:
             nats
             mysql
         env:
-          DB_USER: "${DB_USER}"
-          DB_PASSWORD: "${DB_PASSWORD}"
+          # DB_USER: "${DB_USER}"
+          # DB_PASSWORD: "${DB_PASSWORD}"
           DB_DATABASE: "${DB_DATABASE}"
         
       - name: Wait for 10 seconds for services initialization
