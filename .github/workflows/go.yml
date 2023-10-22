@@ -16,10 +16,10 @@ jobs:
     env:
       APP_PORT: "9000"
       DB_HOST: "localhost"
-      DB_PORT: "3800"
+      DB_PORT: "3700"
       DB_DATABASE: "golang_test"
       DB_USER: "developer"
-      DB_PASSWORD: "developer_password"
+      DB_PASSWORD: "developer_Password123!"
       JWT_SECRET: secret-for-jwt"
       JWT_EXPIRATION_TIME: "1d"
       SENDGRID_API_KEY: "test"
@@ -51,7 +51,7 @@ jobs:
           DB_PASSWORD: ${DB_PASSWORD}
           DB_DATABASE: ${DB_DATABASE}
         
-      - name: Wait for 10 seconds
+      - name: Wait for 10 seconds for services initialization
         run: sleep 10
 
       - name: Integration Tests
