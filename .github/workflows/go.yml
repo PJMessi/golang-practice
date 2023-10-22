@@ -46,10 +46,6 @@ jobs:
           services: |
             nats
             mysql
-        env:
-          DB_USER: "$DB_USER"
-          DB_PASSWORD: "$DB_PASSWORD"
-          DB_DATABASE: "$DB_DATABASE"
         
       - name: Wait for 10 seconds for services initialization
         run: sleep 10
