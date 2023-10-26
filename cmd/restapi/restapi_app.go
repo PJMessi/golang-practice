@@ -75,9 +75,10 @@ func StartApp() {
 	}()
 
 	go func() {
-		err := eventPubService.Subscribe("event.user.new_registration")
+		topic := "ORDERS"
+		err := eventPubService.Subscribe(topic)
 		if err != nil {
-			logService.Error("cannot subscribe to event.user.new_registration")
+			logService.Error(err.Error())
 		}
 	}()
 
