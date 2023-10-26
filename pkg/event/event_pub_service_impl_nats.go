@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/nats-io/nats.go"
 	"github.com/pjmessi/golang-practice/config"
@@ -39,5 +40,19 @@ func (p *PubServiceNatsImpl) Publish(topic string, payload []byte) error {
 	if err != nil {
 		return fmt.Errorf("event.PubServiceNatsImpl.Publish(): %w", err)
 	}
+	return nil
+}
+
+func (e *PubServiceNatsImpl) Subscribe(topic string) error {
+	_, err := e.nc.Subscribe(topic, func(msg *nats.Msg) {
+		log.Printf("Message received: %v", msg)
+	})
+
+	if err != nil {
+		return fmt.Errorf("event.EventSub.Subscribe(): %w", err)
+	}
+
+	e.logService.Debug(fmt.Sprintf("subscribed to event: %s", topic))
+
 	return nil
 }

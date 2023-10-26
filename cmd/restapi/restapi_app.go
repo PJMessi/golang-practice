@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/pjmessi/golang-practice/config"
 	"github.com/pjmessi/golang-practice/internal/pkg/database"
@@ -47,6 +50,7 @@ func StartApp() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer eventPubService.Close()
 
 	// initialize facades
 	userFacade := user.NewFacade(logService, userService, validationHandler, eventPubService)
@@ -57,8 +61,29 @@ func StartApp() {
 
 	// start http server
 	port := appConfig.APP_PORT
-	logService.Debug(fmt.Sprintf("🚀 starting GO server on port: %s", port))
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), router); err != nil {
-		logService.Debug(fmt.Sprintf("error while starting http server: %v", err))
-	}
+	server := &http.Server{Addr: fmt.Sprintf(":%s", port), Handler: router}
+	go func() {
+		logService.Debug(fmt.Sprintf("🚀 starting GO server on port: %s", port))
+		err := server.ListenAndServe()
+		if err != nil {
+			if err == http.ErrServerClosed {
+				logService.Debug("http server closed")
+			} else {
+				logService.Debug(fmt.Sprintf("error while starting http server: %v", err))
+			}
+		}
+	}()
+
+	go func() {
+		err := eventPubService.Subscribe("event.user.new_registration")
+		if err != nil {
+			logService.Error("cannot subscribe to event.user.new_registration")
+		}
+	}()
+
+	// stop http server gracefully
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	<-signalChan
+	server.Close()
 }
