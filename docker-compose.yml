@@ -1,23 +1,26 @@
 version: "3.9"
 
 services:
-  mysql:
+  gomysql:
+    container_name: gomysql
     image: mysql:8.0.31
     environment:
-      MYSQL_ROOT_PASSWORD: "root_password"
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: "root_password"
     ports:
         - "${DB_PORT}:3306"
-    networks: [ "golangpractice" ]
+    networks: 
+      - go_network
     volumes:
       - ./migration.sql:/docker-entrypoint-initdb.d/init.sql
 
-  phpmyadmin:
+  gophpmyadmin:
+    container_name: gophpmyadmin
     image: phpmyadmin
     depends_on:
-      - mysql
+      - gomysql
     environment:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: root_password
@@ -25,28 +28,55 @@ services:
     restart: always
     ports:
       - 8081:80    
-    networks: [ "golangpractice" ]
+    networks:
+     - go_network
 
-  nats:
+  gonats1:
+    container_name: gonats1
     image: nats
+    entrypoint: /nats-server
+    command: >
+      --server_name N1
+      --cluster_name golang_cluster
+      --js
+      --sd /data
+      --cluster nats://0.0.0.0:6222
+      --routes nats://gonats2:6222,nats://gonats3:6222
+    networks:
+      - go_network
     ports:
-      - "8222:8222"
-      - "4222:4222"
-    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --http_port 8222 -js -server_name nats-1 -routes nats://nats-1:6222,nats://nats-2:6222,nats://nats-3:6222"
-    networks: [ "golangpractice" ]
-  nats-1:
-    image: nats
-    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222 -js -server_name nats-2"
-    networks: ["golangpractice"]
-    depends_on: ["nats"]
-  nats-2:
-    image: nats
-    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222 -js -server_name nats-3"
-    networks: ["golangpractice"]
-    depends_on: ["nats"]
+      - 4222:4222
+      - 8222:8222
 
+  gonats2:
+    container_name: gonats2
+    image: nats
+    entrypoint: /nats-server
+    command: > 
+      --server_name N2 
+      --cluster_name golang_cluster 
+      --js 
+      --sd /data 
+      --cluster nats://0.0.0.0:6222 
+      --routes nats://gonats1:6222,nats://gonats3:6222 
+    networks:
+      - go_network
+
+  gonats3:
+    container_name: gonats3
+    image: nats
+    entrypoint: /nats-server
+    command: >
+      --server_name N3 
+      --cluster_name golang_cluster 
+      --js 
+      --sd /data 
+      --cluster nats://0.0.0.0:6222 
+      --routes nats://gonats1:6222,nats://gonats2:6222 
+    networks:
+      - go_network
 
 networks:
-  golangpractice:
-    name: golangpractice
+  go_network:
+    name: go_network
     driver: bridge
