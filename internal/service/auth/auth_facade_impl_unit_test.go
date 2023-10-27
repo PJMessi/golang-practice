@@ -39,10 +39,10 @@ func setupMocksForNewFacade() (*logger.ServiceMock, *ServiceMock, *validation.Ha
 
 func Test_NewFacade(t *testing.T) {
 	// ARRANGE
-	logServiceMock, serviceMock, validatonUtilMock := setupMocksForNewFacade()
+	logServiceMock, serviceMock, validationUtilMock := setupMocksForNewFacade()
 
 	// ACT
-	res := NewFacade(logServiceMock, serviceMock, validatonUtilMock)
+	res := NewFacade(logServiceMock, serviceMock, validationUtilMock)
 
 	// ARRANGE
 	resServiceImpl := res.(*FacadeImpl)
@@ -56,7 +56,7 @@ func Test_Facade_Login_Invalid_Struct_In_Req_Bytes(t *testing.T) {
 	facade, _, _, _ := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	reqByte := []byte{}
+	var reqByte []byte
 
 	// ACT
 	bytesRes, errRes := facade.Login(ctx, reqByte)
@@ -73,7 +73,7 @@ func Test_Facade_Login_Invalid_Struct_Data_In_Req_Bytes(t *testing.T) {
 	facade, _, _, validationUtilMock := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	loginApiReq := testutil.GenLoginApiReq(&model.LoginApiReq{Email: "invalidformat"})
+	loginApiReq := testutil.GenMockLoginApiReq(&model.LoginApiReq{Email: "invalid_format"})
 	reqBytes, _ := json.Marshal(loginApiReq)
 	validationErrDetails := map[string]string{}
 	validationErrDetails["email"] = "invalid email"
@@ -96,7 +96,7 @@ func Test_Facade_Login_Error_While_Validating_Req_Bytes(t *testing.T) {
 	facade, _, _, validationUtilMock := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	loginApiReq := testutil.GenLoginApiReq(&model.LoginApiReq{Email: "invalidformat"})
+	loginApiReq := testutil.GenMockLoginApiReq(&model.LoginApiReq{Email: "invalid_format"})
 	reqBytes, _ := json.Marshal(loginApiReq)
 	validationErr := fmt.Errorf("error from validator.ValidateStruct")
 
@@ -117,7 +117,7 @@ func Test_Facade_Login_Err_Logging_In(t *testing.T) {
 	facade, service, _, validationUtilMock := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	loginApiReq := testutil.GenLoginApiReq(nil)
+	loginApiReq := testutil.GenMockLoginApiReq(nil)
 	reqBytes, _ := json.Marshal(loginApiReq)
 	loginErr := fmt.Errorf("error from Login")
 
@@ -140,7 +140,7 @@ func Test_Facade_Login_Success_Res(t *testing.T) {
 
 	email := testutil.Fake.Internet().Email()
 	ctx := context.Background()
-	loginApiReq := testutil.GenLoginApiReq(&model.LoginApiReq{Email: email})
+	loginApiReq := testutil.GenMockLoginApiReq(&model.LoginApiReq{Email: email})
 	reqBytes, _ := json.Marshal(loginApiReq)
 	user := testutil.GenMockUser(&model.User{Email: email})
 	jwtStr := testutil.Fake.RandomStringWithLength(255)

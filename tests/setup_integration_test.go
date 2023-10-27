@@ -14,8 +14,8 @@ import (
 	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
-	"github.com/pjmessi/golang-practice/pkg/event"
 	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/nats"
 	"github.com/pjmessi/golang-practice/pkg/validation"
 )
 
@@ -53,13 +53,13 @@ func setupIntegrationTest() {
 	// initialize core services
 	userService := user.NewService(logService, db)
 	authService := auth.NewService(logService, jwtHandler, db)
-	eventPubService, err := event.NewPubService(appConfig, logService)
+	natsService, err := nats.NewPubService(appConfig, logService)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// initialize facades
-	userFacade := user.NewFacade(logService, userService, validationHandler, eventPubService)
+	userFacade := user.NewFacade(appConfig, logService, userService, validationHandler, natsService)
 	authFacade := auth.NewFacade(logService, authService, validationHandler)
 
 	// register REST API routes

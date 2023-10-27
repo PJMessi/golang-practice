@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,8 +14,8 @@ import (
 	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
 	"github.com/pjmessi/golang-practice/internal/service/auth"
 	"github.com/pjmessi/golang-practice/internal/service/user"
-	"github.com/pjmessi/golang-practice/pkg/event"
 	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/nats"
 	"github.com/pjmessi/golang-practice/pkg/validation"
 )
 
@@ -46,36 +47,37 @@ func StartApp() {
 	}
 	userService := user.NewService(logService, db)
 	authService := auth.NewService(logService, jwtHandler, db)
-	eventPubService, err := event.NewPubService(appConfig, logService)
+	natsService, err := nats.NewPubService(appConfig, logService)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer eventPubService.Close()
+	defer natsService.Close()
 
 	// initialize facades
-	userFacade := user.NewFacade(logService, userService, validationHandler, eventPubService)
+	userFacade := user.NewFacade(appConfig, logService, userService, validationHandler, natsService)
 	authFacade := auth.NewFacade(logService, authService, validationHandler)
 
 	// register REST API routes
 	router := RegisterRoutes(logService, authFacade, userFacade)
 
-	// start http server
+	// start HTTP server
 	port := appConfig.APP_PORT
 	server := &http.Server{Addr: fmt.Sprintf(":%s", port), Handler: router}
 	go func() {
-		logService.Debug(fmt.Sprintf("🚀 starting GO server on port: %s", port))
+		logService.Debug(fmt.Sprintf("🚀 starting GO HTTP server on port: %s", port))
 		err := server.ListenAndServe()
 		if err != nil {
-			if err == http.ErrServerClosed {
-				logService.Debug("http server closed")
+			if errors.Is(err, http.ErrServerClosed) {
+				logService.Debug("HTTP server closed")
 			} else {
-				logService.Debug(fmt.Sprintf("error while starting http server: %v", err))
+				logService.Debug(fmt.Sprintf("error while starting HTTP server: %v", err))
 			}
 		}
 	}()
 
+	// start NATS consumer
 	go func() {
-		err := eventPubService.Subscribe(appConfig.NATS_STREAM)
+		err := natsService.Subscribe(appConfig.NATS_STREAM)
 		if err != nil {
 			logService.Error(err.Error())
 		}
@@ -85,5 +87,8 @@ func StartApp() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	<-signalChan
-	server.Close()
+	err = server.Close()
+	if err != nil {
+		log.Fatal(fmt.Errorf("error closing HTTP server: %w", err))
+	}
 }

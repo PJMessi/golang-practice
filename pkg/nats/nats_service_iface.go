@@ -1,7 +1,7 @@
-package event
+package nats
 
-type PubService interface {
-	Close() error
+type Service interface {
+	Close()
 	Publish(topic string, payload []byte) error
 	Subscribe(topic string) error
 }

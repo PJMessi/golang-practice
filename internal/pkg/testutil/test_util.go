@@ -63,7 +63,7 @@ func GenMockUser(partialData *model.User) model.User {
 	}
 }
 
-func GenLoginApiReq(partialData *model.LoginApiReq) model.LoginApiReq {
+func GenMockLoginApiReq(partialData *model.LoginApiReq) model.LoginApiReq {
 	email := Fake.Internet().Email()
 	password := Fake.Internet().Password()
 
@@ -83,7 +83,7 @@ func GenLoginApiReq(partialData *model.LoginApiReq) model.LoginApiReq {
 	}
 }
 
-func GenRegUserApiReq(partialData *model.UserRegApiReq) model.UserRegApiReq {
+func GenMockRegUserApiReq(partialData *model.UserRegApiReq) model.UserRegApiReq {
 	email := Fake.Internet().Email()
 	password := Fake.Internet().Password()
 
@@ -133,4 +133,58 @@ func SetupTestUser(testServerUrl string) model.LoginApiRes {
 	_ = json.Unmarshal(responseBodyByte, &responseBody)
 
 	return responseBody
+}
+
+func GetMockAppConfig(appConf *config.AppConfig) config.AppConfig {
+	finalAppConfig := config.AppConfig{
+		APP_PORT:                     "3000",
+		DB_HOST:                      "localhost",
+		DB_PORT:                      "3006",
+		DB_DATABASE:                  "go_test",
+		DB_USER:                      Fake.Internet().User(),
+		DB_PASSWORD:                  Fake.Internet().Password(),
+		JWT_SECRET:                   Fake.RandomStringWithLength(10),
+		JWT_EXPIRATION_TIME:          "1d",
+		NATS_URL:                     "nats://127.0.0.1:4222",
+		NATS_STREAM:                  "GO_STREAM",
+		NATS_EVENT_USER_REGISTRATION: "EVENT.USER.NEW",
+	}
+
+	if appConf != nil {
+		if appConf.APP_PORT != "" {
+			finalAppConfig.APP_PORT = appConf.APP_PORT
+		}
+		if appConf.DB_HOST != "" {
+			finalAppConfig.DB_HOST = appConf.DB_HOST
+		}
+		if appConf.DB_PORT != "" {
+			finalAppConfig.DB_PORT = appConf.DB_PORT
+		}
+		if appConf.DB_DATABASE != "" {
+			finalAppConfig.DB_DATABASE = appConf.DB_DATABASE
+		}
+		if appConf.DB_USER != "" {
+			finalAppConfig.DB_USER = appConf.DB_USER
+		}
+		if appConf.DB_PASSWORD != "" {
+			finalAppConfig.DB_PASSWORD = appConf.DB_PASSWORD
+		}
+		if appConf.JWT_SECRET != "" {
+			finalAppConfig.JWT_SECRET = appConf.JWT_SECRET
+		}
+		if appConf.JWT_EXPIRATION_TIME != "" {
+			finalAppConfig.JWT_EXPIRATION_TIME = appConf.JWT_EXPIRATION_TIME
+		}
+		if appConf.NATS_URL != "" {
+			finalAppConfig.NATS_URL = appConf.NATS_URL
+		}
+		if appConf.NATS_STREAM != "" {
+			finalAppConfig.NATS_STREAM = appConf.NATS_STREAM
+		}
+		if appConf.NATS_EVENT_USER_REGISTRATION != "" {
+			finalAppConfig.NATS_EVENT_USER_REGISTRATION = appConf.NATS_EVENT_USER_REGISTRATION
+		}
+	}
+
+	return finalAppConfig
 }

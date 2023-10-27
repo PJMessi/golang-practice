@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pjmessi/golang-practice/config"
 
 	"github.com/pjmessi/golang-practice/internal/dto"
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/jwt"
-	"github.com/pjmessi/golang-practice/pkg/event"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/nats"
 	"github.com/pjmessi/golang-practice/pkg/structutil"
 	"github.com/pjmessi/golang-practice/pkg/validation"
 )
@@ -20,15 +21,17 @@ type FacadeImpl struct {
 	userService       Service
 	validationHandler validation.Handler
 	logService        logger.Service
-	eventPubService   event.PubService
+	natsService       nats.Service
+	userRegEvent      string
 }
 
-func NewFacade(logService logger.Service, userService Service, validationHandler validation.Handler, eventPubService event.PubService) Facade {
+func NewFacade(appConfig *config.AppConfig, logService logger.Service, userService Service, validationHandler validation.Handler, natsService nats.Service) Facade {
 	return &FacadeImpl{
 		userService:       userService,
 		validationHandler: validationHandler,
 		logService:        logService,
-		eventPubService:   eventPubService,
+		natsService:       natsService,
+		userRegEvent:      appConfig.NATS_EVENT_USER_REGISTRATION,
 	}
 }
 
@@ -79,7 +82,7 @@ func (f *FacadeImpl) genNewRegEventPayload(ctx context.Context, userId string, e
 
 	eventPayloadBytes, err := structutil.ConvertToBytes(eventPayload)
 	if err != nil {
-		f.logService.ErrorCtx(ctx, fmt.Sprintf("error generating payload for 'event.user.new_registration' event for userId '%s' and email '%s': %s", userId, email, err))
+		f.logService.ErrorCtx(ctx, fmt.Sprintf("error generating payload for 'nats.user.new_registration' nats for userId '%s' and email '%s': %s", userId, email, err))
 		return nil
 	}
 
@@ -87,11 +90,11 @@ func (f *FacadeImpl) genNewRegEventPayload(ctx context.Context, userId string, e
 }
 
 func (f *FacadeImpl) publishNewRegEventPayload(ctx context.Context, payload []byte, userId string, email string) {
-	err := f.eventPubService.Publish("event.user.new_registration", payload)
+	err := f.natsService.Publish(f.userRegEvent, payload)
 	if err != nil {
-		f.logService.ErrorCtx(ctx, fmt.Sprintf("error publishing 'event.user.new_registration' event for userId '%s' and email '%s': %s", userId, email, err))
+		f.logService.ErrorCtx(ctx, fmt.Sprintf("error publishing 'nats.user.new_registration' nats for userId '%s' and email '%s': %s", userId, email, err))
 	} else {
-		f.logService.DebugCtx(ctx, fmt.Sprintf("published 'event.user.new_registration' event for userId '%s' and email '%s'", userId, email))
+		f.logService.DebugCtx(ctx, fmt.Sprintf("published 'nats.user.new_registration' nats for userId '%s' and email '%s'", userId, email))
 	}
 }
 

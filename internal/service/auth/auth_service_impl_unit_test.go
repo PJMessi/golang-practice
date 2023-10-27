@@ -106,7 +106,7 @@ func Test_Service_Login_Err_Getting_User_By_Email(t *testing.T) {
 	assert.Equal(t, errRes, expectedErr)
 }
 
-func Test_Service_Login_User_Hasnt_Setup_Pw(t *testing.T) {
+func Test_Service_Login_User_Has_not_Setup_Pw(t *testing.T) {
 	// ARRANGE
 	service, dbMock, _, logServiceMock := setupMocksForServiceImplTest()
 

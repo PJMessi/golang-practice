@@ -4,69 +4,73 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pjmessi/golang-practice/config"
 	"testing"
 	"time"
 
 	"github.com/pjmessi/golang-practice/internal/errorcode"
 	"github.com/pjmessi/golang-practice/internal/model"
 	"github.com/pjmessi/golang-practice/internal/pkg/testutil"
-	"github.com/pjmessi/golang-practice/pkg/event"
 	"github.com/pjmessi/golang-practice/pkg/exception"
 	"github.com/pjmessi/golang-practice/pkg/logger"
+	"github.com/pjmessi/golang-practice/pkg/nats"
 	"github.com/pjmessi/golang-practice/pkg/validation"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 // setupMocksForFacadeImplTest creates ServiceImpl with mocked dependencies
-func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.ServiceMock, *validation.HandlerMock, *event.PubServiceMock) {
+func setupMocksForFacadeImplTest() (*FacadeImpl, *ServiceMock, *logger.ServiceMock, *validation.HandlerMock, *nats.PubServiceMock, string) {
 	userService := new(ServiceMock)
 	validationUtilMock := new(validation.HandlerMock)
 	logServiceMock := new(logger.ServiceMock)
-	eventPubService := new(event.PubServiceMock)
+	natsService := new(nats.PubServiceMock)
+	userRegEvent := "EVENT.USER.NEW"
 	authFacade := &FacadeImpl{
 		userService:       userService,
 		logService:        logServiceMock,
 		validationHandler: validationUtilMock,
-		eventPubService:   eventPubService,
+		natsService:       natsService,
+		userRegEvent:      userRegEvent,
 	}
-	return authFacade, userService, logServiceMock, validationUtilMock, eventPubService
+	return authFacade, userService, logServiceMock, validationUtilMock, natsService, userRegEvent
 }
 
 // setupMocksForNewService returns mocked dependencies for NewService func
-func setupMocksForNewFacade() (*logger.ServiceMock, *ServiceMock, *validation.HandlerMock, *event.PubServiceMock) {
+func setupMocksForNewFacade() (config.AppConfig, *logger.ServiceMock, *ServiceMock, *validation.HandlerMock, *nats.PubServiceMock) {
 	validationUtilMock := new(validation.HandlerMock)
 	logServiceMock := new(logger.ServiceMock)
-	userService := new(ServiceMock)
-	eventPubService := new(event.PubServiceMock)
-	return logServiceMock, userService, validationUtilMock, eventPubService
+	userServiceMock := new(ServiceMock)
+	natsServiceMock := new(nats.PubServiceMock)
+	appConfigMock := testutil.GetMockAppConfig(nil)
+	return appConfigMock, logServiceMock, userServiceMock, validationUtilMock, natsServiceMock
 }
 
 func Test_NewFacade(t *testing.T) {
 	// ARRANGE
-	logServiceMock, serviceMock, validatonUtilMock, eventPubServiceMock := setupMocksForNewFacade()
+	appConfig, logServiceMock, serviceMock, validationUtilMock, natsServiceMock := setupMocksForNewFacade()
 
 	// ACT
-	res := NewFacade(logServiceMock, serviceMock, validatonUtilMock, eventPubServiceMock)
+	res := NewFacade(&appConfig, logServiceMock, serviceMock, validationUtilMock, natsServiceMock)
 
-	// ARRANGE
+	// ASSERT
 	resServiceImpl := res.(*FacadeImpl)
 
 	assert.IsType(t, &FacadeImpl{}, res)
-	assert.Equal(t, res, resServiceImpl)
+	assert.Equal(t, resServiceImpl, res)
 }
 
 func Test_Facade_RegisterUser_Invalid_Struct_In_Req_Bytes(t *testing.T) {
 	// ARRANGE
-	facade, _, _, _, _ := setupMocksForFacadeImplTest()
+	facade, _, _, _, _, _ := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	reqByte := []byte{}
+	var reqByte []byte
 
 	// ACT
 	bytesRes, errRes := facade.RegisterUser(ctx, reqByte)
 
-	// ARRANGE
+	// ASSERT
 	expectedErr := exception.NewInvalidReqFromBase(exception.Base{Message: errorcode.ReqDataMissing})
 
 	assert.Equal(t, expectedErr, errRes)
@@ -75,10 +79,10 @@ func Test_Facade_RegisterUser_Invalid_Struct_In_Req_Bytes(t *testing.T) {
 
 func Test_Facade_RegisterUser_Invalid_Struct_Data_In_Req_Bytes(t *testing.T) {
 	// ARRANGE
-	facade, _, _, validationUtilMock, _ := setupMocksForFacadeImplTest()
+	facade, _, _, validationUtilMock, _, _ := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	regUserApiReq := testutil.GenRegUserApiReq(&model.UserRegApiReq{Email: "invalidformat"})
+	regUserApiReq := testutil.GenMockRegUserApiReq(&model.UserRegApiReq{Email: "invalid_format"})
 	reqBytes, _ := json.Marshal(regUserApiReq)
 	validationErrDetails := map[string]string{}
 	validationErrDetails["email"] = "invalid email"
@@ -89,7 +93,7 @@ func Test_Facade_RegisterUser_Invalid_Struct_Data_In_Req_Bytes(t *testing.T) {
 	// ACT
 	bytesRes, errRes := facade.RegisterUser(ctx, reqBytes)
 
-	// ARRANGE
+	// ASSERT
 	expectedErr := exception.NewInvalidReqFromBase(exception.Base{Details: &validationErrDetails})
 
 	assert.Equal(t, errRes, expectedErr)
@@ -98,10 +102,10 @@ func Test_Facade_RegisterUser_Invalid_Struct_Data_In_Req_Bytes(t *testing.T) {
 
 func Test_Facade_RegisterUser_Error_While_Validating_Req_Bytes(t *testing.T) {
 	// ARRANGE
-	facade, _, _, validationUtilMock, _ := setupMocksForFacadeImplTest()
+	facade, _, _, validationUtilMock, _, _ := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	regUserApiReq := testutil.GenRegUserApiReq(&model.UserRegApiReq{Email: "invalidformat"})
+	regUserApiReq := testutil.GenMockRegUserApiReq(&model.UserRegApiReq{Email: "invalid_format"})
 	reqBytes, _ := json.Marshal(regUserApiReq)
 	validationErr := fmt.Errorf("error from validator.ValidateStruct")
 
@@ -110,7 +114,7 @@ func Test_Facade_RegisterUser_Error_While_Validating_Req_Bytes(t *testing.T) {
 	// ACT
 	bytesRes, errRes := facade.RegisterUser(ctx, reqBytes)
 
-	// ARRANGE
+	// ASSERT
 	expectedErr := validationErr
 
 	assert.Equal(t, errRes, expectedErr)
@@ -119,10 +123,10 @@ func Test_Facade_RegisterUser_Error_While_Validating_Req_Bytes(t *testing.T) {
 
 func Test_Facade_RegisterUser_Err_Creating_User(t *testing.T) {
 	// ARRANGE
-	facade, service, _, validationUtilMock, _ := setupMocksForFacadeImplTest()
+	facade, service, _, validationUtilMock, _, _ := setupMocksForFacadeImplTest()
 
 	ctx := context.Background()
-	regUserApiReq := testutil.GenRegUserApiReq(nil)
+	regUserApiReq := testutil.GenMockRegUserApiReq(nil)
 	reqBytes, _ := json.Marshal(regUserApiReq)
 	createUserErr := fmt.Errorf("error from CreateUser")
 
@@ -132,7 +136,7 @@ func Test_Facade_RegisterUser_Err_Creating_User(t *testing.T) {
 	// ACT
 	bytesRes, errRes := facade.RegisterUser(ctx, reqBytes)
 
-	// ARRANGE
+	// ASSERT
 	expectedErr := createUserErr
 
 	assert.Equal(t, errRes, expectedErr)
@@ -141,26 +145,26 @@ func Test_Facade_RegisterUser_Err_Creating_User(t *testing.T) {
 
 func Test_Facade_RegisterUser_Err_Publishing_Event(t *testing.T) {
 	// ARRANGE
-	facade, service, logServiceMock, validationUtilMock, eventPubServiceMock := setupMocksForFacadeImplTest()
+	facade, service, logServiceMock, validationUtilMock, natsServiceMock, userRegistrationEvent := setupMocksForFacadeImplTest()
 
 	email := testutil.Fake.Internet().Email()
 	ctx := context.Background()
-	regUserApiReq := testutil.GenRegUserApiReq(&model.UserRegApiReq{Email: email})
+	regUserApiReq := testutil.GenMockRegUserApiReq(&model.UserRegApiReq{Email: email})
 	reqBytes, _ := json.Marshal(regUserApiReq)
 	user := testutil.GenMockUser(&model.User{Email: email})
-	publishErr := fmt.Errorf("Error from Publish")
+	publishErr := fmt.Errorf("error from Publish")
 
 	logServiceMock.On("ErrorCtx", mock.Anything, mock.Anything)
 	validationUtilMock.On("ValidateStruct", regUserApiReq).Return(nil)
 	service.On("CreateUser", ctx, regUserApiReq.Email, regUserApiReq.Password).Return(user, nil)
-	eventPubServiceMock.On("Publish", "event.user.new_registration", mock.Anything).Return(publishErr)
+	natsServiceMock.On("Publish", userRegistrationEvent, mock.Anything).Return(publishErr)
 
 	// ACT
 	_, errRes := facade.RegisterUser(ctx, reqBytes)
 
-	// ARRANGE
+	// ASSERT
 	// should log instead of returning error
-	expectedLogStr := fmt.Sprintf("error publishing 'event.user.new_registration' event for userId '%s' and email '%s': %s", user.Id, user.Email, publishErr)
+	expectedLogStr := fmt.Sprintf("error publishing 'nats.user.new_registration' nats for userId '%s' and email '%s': %s", user.Id, user.Email, publishErr)
 
 	assert.Equal(t, errRes, nil)
 	logServiceMock.AssertCalled(t, "ErrorCtx", ctx, expectedLogStr)
@@ -168,23 +172,23 @@ func Test_Facade_RegisterUser_Err_Publishing_Event(t *testing.T) {
 
 func Test_Facade_RegisterUser_Success_Res(t *testing.T) {
 	// ARRANGE
-	facade, service, logServiceMock, validationUtilMock, eventPubServiceMock := setupMocksForFacadeImplTest()
+	facade, service, logServiceMock, validationUtilMock, natsServiceMock, userRegistrationEvent := setupMocksForFacadeImplTest()
 
 	email := testutil.Fake.Internet().Email()
 	ctx := context.Background()
-	regUserApiReq := testutil.GenRegUserApiReq(&model.UserRegApiReq{Email: email})
+	regUserApiReq := testutil.GenMockRegUserApiReq(&model.UserRegApiReq{Email: email})
 	reqBytes, _ := json.Marshal(regUserApiReq)
 	user := testutil.GenMockUser(&model.User{Email: email})
 
 	logServiceMock.On("DebugCtx", mock.Anything, mock.Anything)
 	validationUtilMock.On("ValidateStruct", regUserApiReq).Return(nil)
 	service.On("CreateUser", ctx, regUserApiReq.Email, regUserApiReq.Password).Return(user, nil)
-	eventPubServiceMock.On("Publish", "event.user.new_registration", mock.Anything).Return(nil)
+	natsServiceMock.On("Publish", userRegistrationEvent, mock.Anything).Return(nil)
 
 	// ACT
 	bytesRes, errRes := facade.RegisterUser(ctx, reqBytes)
 
-	// ARRANGE
+	// ASSERT
 	expectedUserRes := model.UserRes{
 		Id:        user.Id,
 		Email:     user.Email,
