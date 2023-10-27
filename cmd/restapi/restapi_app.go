@@ -75,8 +75,7 @@ func StartApp() {
 	}()
 
 	go func() {
-		topic := "ORDERS"
-		err := eventPubService.Subscribe(topic)
+		err := eventPubService.Subscribe(appConfig.NATS_STREAM)
 		if err != nil {
 			logService.Error(err.Error())
 		}

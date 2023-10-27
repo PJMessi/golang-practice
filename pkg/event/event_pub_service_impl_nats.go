@@ -16,6 +16,7 @@ type PubServiceNatsImpl struct {
 	nc         *nats.Conn
 	logService logger.Service
 	js         jetstream.JetStream
+	subjects   []string
 }
 
 func NewPubService(appConfig *config.AppConfig, logService logger.Service) (PubService, error) {
@@ -35,7 +36,9 @@ func NewPubService(appConfig *config.AppConfig, logService logger.Service) (PubS
 		return nil, fmt.Errorf("nats.NewPublisherService(): %w", err)
 	}
 
-	return &PubServiceNatsImpl{nc: nc, logService: logService, js: js}, nil
+	return &PubServiceNatsImpl{nc: nc, logService: logService, js: js, subjects: []string{
+		appConfig.NATS_EVENT_USER_REGISTRATION,
+	}}, nil
 }
 
 func (p *PubServiceNatsImpl) Close() error {
@@ -100,7 +103,7 @@ func (e *PubServiceNatsImpl) createConsumer(ctx context.Context, stream jetstrea
 func (e *PubServiceNatsImpl) createStream(ctx context.Context, name string) (jetstream.Stream, error) {
 	stream, err := e.js.CreateOrUpdateStream(ctx, jetstream.StreamConfig{
 		Name:     name,
-		Subjects: []string{fmt.Sprintf("%s.*", name)},
+		Subjects: e.subjects,
 	})
 
 	if err != nil {
